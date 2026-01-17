@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-2xl) 0; min-height: 80vh; display: flex; align-items: center;">
+    <div class="container" style="max-width: 450px;">
+        <div class="card">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <h1 style="font-size: 1.75rem;">Create Your Account</h1>
+                <p style="margin: 0;">Start learning ethical hacking today</p>
+            </div>
+
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                    <div class="form-group">
+                        <label class="form-label" for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" class="form-input" placeholder="John"
+                            autocomplete="given-name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Doe"
+                            autocomplete="family-name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" required
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-input"
+                        placeholder="Min 12 characters" required autocomplete="new-password">
+                    <small style="color: var(--text-muted); font-size: 0.8rem;">
+                        Must include uppercase, lowercase, number, and special character
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password_confirm">Confirm Password</label>
+                    <input type="password" id="password_confirm" name="password_confirm" class="form-input"
+                        placeholder="Repeat password" required autocomplete="new-password">
+                </div>
+
+                {% if form.errors %}
+                <div class="alert alert-error" style="margin-bottom: var(--space-lg);">
+                    {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <div>{{ error }}</div>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Create Account
+                </button>
+            </form>
+
+            <div
+                style="text-align: center; margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--bg-tertiary);">
+                <p style="margin: 0;">
+                    Already have an account?
+                    <a href="/login/">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

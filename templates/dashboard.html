@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-2xl) 0;">
+    <div class="container">
+        <!-- Welcome Header -->
+        <div style="margin-bottom: var(--space-2xl);">
+            <h1>Welcome back, {{ user.display_name }}!</h1>
+            <p>Continue your ethical hacking journey</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid" style="margin-bottom: var(--space-2xl);">
+            <div class="stat-card">
+                <div class="stat-value" id="user-xp">0</div>
+                <div class="stat-label">Total XP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="user-level">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="user-streak">0</div>
+                <div class="stat-label">Day Streak 🔥</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="labs-completed">0</div>
+                <div class="stat-label">Labs Completed</div>
+            </div>
+        </div>
+
+        <!-- Level Progress -->
+        <div class="card" style="margin-bottom: var(--space-2xl);">
+            <h3>Level Progress</h3>
+            <div class="progress-bar" style="margin: var(--space-md) 0;">
+                <div class="progress-fill" id="level-progress" style="width: 0%;"></div>
+            </div>
+            <p style="font-size: 0.9rem; margin: 0;">
+                <span id="xp-current">0</span> / <span id="xp-needed">100</span> XP to Level <span
+                    id="next-level">2</span>
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-xl);">
+            <!-- Continue Learning -->
+            <div>
+                <h2 style="margin-bottom: var(--space-lg);">Continue Learning</h2>
+
+                <div class="card" style="margin-bottom: var(--space-lg);">
+                    <div class="card-header">
+                        <div>
+                            <span class="badge badge-beginner">In Progress</span>
+                            <h3 style="margin-top: var(--space-sm); margin-bottom: 0;">Linux Fundamentals</h3>
+                        </div>
+                        <span style="font-size: 1.5rem;">🐧</span>
+                    </div>
+                    <div class="progress-bar" style="margin: var(--space-md) 0;">
+                        <div class="progress-fill" style="width: 45%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-muted);">45% Complete</span>
+                        <a href="/courses/linux-fundamentals/" class="btn btn-primary">Continue</a>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: var(--space-lg);">Recommended Next</h2>
+
+                <div class="course-grid" style="grid-template-columns: 1fr 1fr;">
+                    <a href="/courses/" class="course-card" style="text-decoration: none; color: inherit;">
+                        <div class="course-thumbnail" style="height: 100px;">🌐</div>
+                        <div class="course-content">
+                            <span class="badge badge-intermediate">Intermediate</span>
+                            <h4 style="margin-top: var(--space-sm);">Web Security Basics</h4>
+                            <div class="course-meta">
+                                <span>15 Lessons</span>
+                                <span>+350 XP</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="/courses/" class="course-card" style="text-decoration: none; color: inherit;">
+                        <div class="course-thumbnail" style="height: 100px;">🔌</div>
+                        <div class="course-content">
+                            <span class="badge badge-beginner">Beginner</span>
+                            <h4 style="margin-top: var(--space-sm);">Networking Essentials</h4>
+                            <div class="course-meta">
+                                <span>10 Lessons</span>
+                                <span>+200 XP</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <h3 style="margin-bottom: var(--space-lg);">Recent Achievements</h3>
+
+                <div class="card" style="margin-bottom: var(--space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <span style="font-size: 2rem;">🎯</span>
+                        <div>
+                            <strong>First Steps</strong>
+                            <p style="margin: 0; font-size: 0.85rem;">Complete your first lesson</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--space-md);">
+                        <span style="font-size: 2rem;">💻</span>
+                        <div>
+                            <strong>Terminal Novice</strong>
+                            <p style="margin: 0; font-size: 0.85rem;">Run 100 commands</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="/achievements/" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                    View All Achievements
+                </a>
+
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg);">Quick Actions</h3>
+
+                <a href="/labs/" class="btn btn-primary"
+                    style="width: 100%; justify-content: center; margin-bottom: var(--space-md);">
+                    🖥️ Launch Lab
+                </a>
+
+                <a href="/leaderboard/" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                    🏆 View Leaderboard
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Fetch and display user stats
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/v1/progress/stats/', {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                const stats = await response.json();
+                document.getElementById('user-xp').textContent = stats.xp.toLocaleString();
+                document.getElementById('user-level').textContent = stats.level;
+                document.getElementById('user-streak').textContent = stats.streak;
+                document.getElementById('labs-completed').textContent = stats.labs_completed;
+                document.getElementById('level-progress').style.width = stats.xp_progress + '%';
+                document.getElementById('xp-current').textContent = stats.xp;
+                document.getElementById('xp-needed').textContent = stats.xp_for_next_level;
+                document.getElementById('next-level').textContent = stats.level + 1;
+            }
+        } catch (err) {
+            console.error('Failed to load stats:', err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStats);
+</script>
+{% endblock %}

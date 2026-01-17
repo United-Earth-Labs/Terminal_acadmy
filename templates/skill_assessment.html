@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Skill Assessment - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-2xl) 0;">
+    <div class="container" style="max-width: 700px;">
+        <div class="card">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <h1 style="font-size: 1.75rem;">🎯 Skill Assessment</h1>
+                <p style="margin: 0;">Let's find the right starting point for you</p>
+            </div>
+
+            <div class="progress-bar" style="margin-bottom: var(--space-xl);">
+                <div class="progress-fill" id="assessment-progress" style="width: 0%;"></div>
+            </div>
+
+            <form method="post" id="assessment-form">
+                {% csrf_token %}
+
+                <!-- Question 1 -->
+                <div class="question" data-question="1">
+                    <h3>1. What is the command to list files in Linux?</h3>
+                    <div class="form-group">
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q1" value="correct"> ls
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q1" value="wrong"> dir
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q1" value="wrong"> list
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="q1" value="unsure"> Not sure
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question" data-question="2" style="display: none;">
+                    <h3>2. What does HTTP stand for?</h3>
+                    <div class="form-group">
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q2" value="wrong"> High Transfer Text Protocol
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q2" value="correct"> HyperText Transfer Protocol
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q2" value="wrong"> Hyper Transfer Text Protocol
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="q2" value="unsure"> Not sure
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="question" data-question="3" style="display: none;">
+                    <h3>3. What is SQL injection?</h3>
+                    <div class="form-group">
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q3" value="wrong"> A type of malware
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q3" value="correct"> A web attack that manipulates database
+                            queries
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q3" value="wrong"> A networking protocol
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="q3" value="unsure"> Not sure
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="question" data-question="4" style="display: none;">
+                    <h3>4. What port does SSH typically use?</h3>
+                    <div class="form-group">
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q4" value="wrong"> 80
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q4" value="correct"> 22
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q4" value="wrong"> 443
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="q4" value="unsure"> Not sure
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="question" data-question="5" style="display: none;">
+                    <h3>5. What is Nmap used for?</h3>
+                    <div class="form-group">
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q5" value="correct"> Network discovery and port scanning
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q5" value="wrong"> Password cracking
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer;">
+                            <input type="radio" name="q5" value="wrong"> Web development
+                        </label>
+                        <label
+                            style="display: block; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="q5" value="unsure"> Not sure
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: var(--space-md);">
+                    <button type="button" id="prev-btn" class="btn btn-secondary"
+                        style="flex: 1; justify-content: center;" disabled>
+                        Previous
+                    </button>
+                    <button type="button" id="next-btn" class="btn btn-primary"
+                        style="flex: 1; justify-content: center;">
+                        Next
+                    </button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary"
+                        style="flex: 1; justify-content: center; display: none;">
+                        Complete Assessment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const questions = document.querySelectorAll('.question');
+    const totalQuestions = questions.length;
+    let currentQuestion = 1;
+
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressBar = document.getElementById('assessment-progress');
+
+    function updateView() {
+        questions.forEach(q => {
+            q.style.display = parseInt(q.dataset.question) === currentQuestion ? 'block' : 'none';
+        });
+
+        prevBtn.disabled = currentQuestion === 1;
+
+        if (currentQuestion === totalQuestions) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'flex';
+        } else {
+            nextBtn.style.display = 'flex';
+            submitBtn.style.display = 'none';
+        }
+
+        progressBar.style.width = ((currentQuestion - 1) / totalQuestions * 100) + '%';
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestion > 1) {
+            currentQuestion--;
+            updateView();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestion < totalQuestions) {
+            currentQuestion++;
+            updateView();
+        }
+    });
+
+    updateView();
+</script>
+{% endblock %}

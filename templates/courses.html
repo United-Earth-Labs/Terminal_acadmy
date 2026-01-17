@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Courses - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0;">
+    <div class="container">
+        <h1>📚 Courses</h1>
+        <p style="color: var(--text-muted); margin-bottom: var(--space-xl);">
+            Learn ethical hacking from beginner to advanced
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
+            {% for course in courses %}
+            <div class="card">
+                <span class="badge badge-{{ course.difficulty_level }}">{{ course.get_difficulty_level_display }}</span>
+                <h3 style="margin-top: var(--space-md);">{{ course.title }}</h3>
+                <p style="color: var(--text-muted);">{{ course.description|truncatewords:20 }}</p>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md);">
+                    <span>{{ course.modules.count }} modules</span>
+                    <a href="#" class="btn btn-primary">Start Course</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center;">
+                <p>No courses available yet. Check back soon!</p>
+                <p style="color: var(--text-muted);">Courses will be added by administrators.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

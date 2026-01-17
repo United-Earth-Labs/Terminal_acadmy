@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Terminal Academy - Learn Ethical Hacking{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section
+    style="padding: var(--space-2xl) 0; background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);">
+    <div class="container" style="text-align: center;">
+        <h1 style="font-size: 3rem; margin-bottom: var(--space-lg);">
+            Learn <span style="color: var(--accent-green);">Ethical Hacking</span><br>
+            Through Interactive Labs
+        </h1>
+        <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto var(--space-xl);">
+            Master cybersecurity with hands-on terminal labs, guided learning paths,
+            and CTF-style challenges. 100% safe and legal.
+        </p>
+
+        <div class="flex gap-md items-center" style="justify-content: center;">
+            <a href="/register/" class="btn btn-primary" style="padding: var(--space-md) var(--space-xl);">
+                Start Learning Free
+            </a>
+            <a href="#demo" class="btn btn-outline">
+                Watch Demo
+            </a>
+        </div>
+
+        <!-- Terminal Demo -->
+        <div class="terminal" style="max-width: 700px; margin: var(--space-2xl) auto 0; text-align: left;">
+            <div class="terminal-header">
+                <span class="terminal-dot red"></span>
+                <span class="terminal-dot yellow"></span>
+                <span class="terminal-dot green"></span>
+                <span class="terminal-title">academy-lab ~ student</span>
+            </div>
+            <div class="terminal-body" style="height: auto; padding: var(--space-lg);">
+                <div class="terminal-output">
+                    <span class="terminal-prompt">student@academy:~$</span> <span class="terminal-command">nmap
+                        target</span>
+                    Starting Nmap 7.94 ( https://nmap.org )
+                    Nmap scan report for target (192.168.1.100)
+
+                    PORT STATE SERVICE VERSION
+                    22/tcp open ssh OpenSSH 8.9
+                    80/tcp open http Apache 2.4
+                    443/tcp open https
+
+                    Nmap done: 1 IP address (1 host up)
+
+                    <span class="terminal-prompt">student@academy:~$</span> <span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" style="padding: var(--space-2xl) 0;">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: var(--space-2xl);">
+            Why Terminal Academy?
+        </h2>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: var(--space-md);">🖥️</div>
+                <h4>Interactive Labs</h4>
+                <p style="font-size: 0.9rem;">Learn by doing with real terminal commands in safe, simulated
+                    environments.</p>
+            </div>
+
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: var(--space-md);">📈</div>
+                <h4>Adaptive Learning</h4>
+                <p style="font-size: 0.9rem;">Courses adapt to your skill level. Start where you are, grow at your pace.
+                </p>
+            </div>
+
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: var(--space-md);">🏆</div>
+                <h4>Gamified Progress</h4>
+                <p style="font-size: 0.9rem;">Earn XP, level up, unlock achievements, and compete on leaderboards.</p>
+            </div>
+
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: var(--space-md);">🔒</div>
+                <h4>100% Legal & Safe</h4>
+                <p style="font-size: 0.9rem;">All labs are sandboxed simulations. No real systems. No legal risks.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Courses Preview -->
+<section id="courses" style="padding: var(--space-2xl) 0; background: var(--bg-secondary);">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: var(--space-sm);">
+            Learning Paths
+        </h2>
+        <p style="text-align: center; margin-bottom: var(--space-2xl);">
+            From beginner to expert, we've got you covered
+        </p>
+
+        <div class="course-grid">
+            <div class="course-card">
+                <div class="course-thumbnail">🐧</div>
+                <div class="course-content">
+                    <span class="badge badge-beginner">Beginner</span>
+                    <h3 class="course-title" style="margin-top: var(--space-sm);">Linux Fundamentals</h3>
+                    <p style="font-size: 0.9rem;">Master the command line and essential Linux skills.</p>
+                    <div class="course-meta">
+                        <span>12 Lessons</span>
+                        <span>4 Labs</span>
+                        <span>+200 XP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="course-card">
+                <div class="course-thumbnail">🌐</div>
+                <div class="course-content">
+                    <span class="badge badge-intermediate">Intermediate</span>
+                    <h3 class="course-title" style="margin-top: var(--space-sm);">Web Security Basics</h3>
+                    <p style="font-size: 0.9rem;">Learn OWASP Top 10 vulnerabilities and how to test for them.</p>
+                    <div class="course-meta">
+                        <span>15 Lessons</span>
+                        <span>8 Labs</span>
+                        <span>+350 XP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="course-card">
+                <div class="course-thumbnail">🔍</div>
+                <div class="course-content">
+                    <span class="badge badge-advanced">Advanced</span>
+                    <h3 class="course-title" style="margin-top: var(--space-sm);">Network Reconnaissance</h3>
+                    <p style="font-size: 0.9rem;">Master scanning, enumeration, and footprinting techniques.</p>
+                    <div class="course-meta">
+                        <span>10 Lessons</span>
+                        <span>6 Labs</span>
+                        <span>+500 XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: var(--space-2xl);">
+            <a href="/register/" class="btn btn-primary">Start Your Journey</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="padding: var(--space-2xl) 0;">
+    <div class="container" style="text-align: center;">
+        <h2>Ready to Become an Ethical Hacker?</h2>
+        <p style="margin-bottom: var(--space-xl);">
+            Join thousands of students learning cybersecurity the right way.
+        </p>
+        <a href="/register/" class="btn btn-primary" style="padding: var(--space-md) var(--space-2xl);">
+            Create Free Account
+        </a>
+    </div>
+</section>
+{% endblock %}

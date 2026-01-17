@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0;">
+    <div class="container" style="max-width: 600px;">
+        <h1>👤 Profile</h1>
+
+        <div class="card" style="margin-top: var(--space-xl);">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <div
+                    style="width: 80px; height: 80px; background: var(--accent-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 2rem;">
+                    {{ user.first_name|slice:":1"|upper|default:"U" }}
+                </div>
+                <h2 style="margin-top: var(--space-md);">{{ user.get_full_name|default:user.email }}</h2>
+                <p style="color: var(--text-muted);">{{ user.email }}</p>
+            </div>
+
+            <div style="display: grid; gap: var(--space-md);">
+                <div
+                    style="display: flex; justify-content: space-between; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                    <span>Role</span>
+                    <span class="badge">{{ user.get_role_display }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                    <span>Skill Level</span>
+                    <span>{{ user.get_skill_level_display }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                    <span>Member Since</span>
+                    <span>{{ user.date_joined|date:"M d, Y" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; padding: var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                    <span>Ethical Agreement</span>
+                    <span>{% if user.ethical_agreement_accepted %}✅ Accepted{% else %}❌ Not Accepted{% endif %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

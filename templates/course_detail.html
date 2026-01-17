@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0;">
+    <div class="container">
+        <a href="/courses/" style="color: var(--text-muted);">← Back to Courses</a>
+
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: var(--space-lg); gap: var(--space-xl); flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <span class="badge badge-{{ course.difficulty_level }}">{{ course.get_difficulty_level_display }}</span>
+                <h1 style="margin-top: var(--space-md);">{{ course.title }}</h1>
+                <p style="font-size: 1.1rem; color: var(--text-muted);">{{ course.description }}</p>
+
+                <div style="display: flex; gap: var(--space-lg); margin-top: var(--space-lg);">
+                    <div>
+                        <strong>{{ modules.count }}</strong>
+                        <span style="color: var(--text-muted);">modules</span>
+                    </div>
+                    <div>
+                        <strong>{{ course.estimated_hours }}</strong>
+                        <span style="color: var(--text-muted);">hours</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="width: 300px;">
+                <h3>Start Learning</h3>
+                <p style="color: var(--text-muted);">Continue where you left off</p>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Start Course
+                </button>
+            </div>
+        </div>
+
+        <h2 style="margin-top: var(--space-2xl);">Course Content</h2>
+
+        <div style="margin-top: var(--space-lg);">
+            {% for module in modules %}
+            <div class="card" style="margin-bottom: var(--space-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0;">{{ forloop.counter }}. {{ module.title }}</h3>
+                    <span style="color: var(--text-muted);">{{ module.lessons.count }} lessons</span>
+                </div>
+                <p style="color: var(--text-muted); margin: var(--space-sm) 0;">{{ module.description }}</p>
+
+                <ul style="list-style: none; padding: 0; margin: var(--space-md) 0 0 0;">
+                    {% for lesson in module.lessons.all %}
+                    <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--bg-tertiary);">
+                        <span style="color: var(--text-muted);">{{ lesson.order }}.</span>
+                        {{ lesson.title }}
+                        <span style="color: var(--accent-green); float: right;">{{ lesson.estimated_minutes }}
+                            min</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% empty %}
+            <div class="card" style="text-align: center;">
+                <p style="color: var(--text-muted);">No modules available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
