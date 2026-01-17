@@ -26,6 +26,12 @@
                         required autocomplete="current-password">
                 </div>
 
+                <div style="text-align: right; margin-bottom: var(--space-md);">
+                    <a href="/password_reset/" style="font-size: 0.9rem; color: var(--accent-cyan);">
+                        Forgot password?
+                    </a>
+                </div>
+
                 {% if form.errors %}
                 <div class="alert alert-error" style="margin-bottom: var(--space-lg);">
                     Invalid email or password. Please try again.

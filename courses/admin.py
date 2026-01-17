@@ -4,7 +4,8 @@ Admin configuration for Course models.
 from django.contrib import admin
 from .models import (
     Category, Course, CoursePrerequisite, Module, 
-    Lesson, LessonResource, Quiz, QuizQuestion, QuizAnswer
+    Lesson, LessonResource, Quiz, QuizQuestion, QuizAnswer,
+    QuizAttempt, AssessmentSession, AssessmentAuditLog
 )
 
 
@@ -108,3 +109,64 @@ class QuizQuestionAdmin(admin.ModelAdmin):
 class QuizAnswerAdmin(admin.ModelAdmin):
     list_display = ['answer_text', 'question', 'is_correct']
     list_filter = ['is_correct']
+
+
+@admin.register(QuizAttempt)
+class QuizAttemptAdmin(admin.ModelAdmin):
+    list_display = ['user', 'quiz', 'score', 'passed', 'submitted_at', 'xp_awarded']
+    list_filter = ['passed', 'xp_awarded', 'quiz__lesson__module__course']
+    search_fields = ['user__email', 'quiz__title']
+    readonly_fields = ['started_at', 'submitted_at']
+    date_hierarchy = 'submitted_at'
+
+
+@admin.register(AssessmentSession)
+class AssessmentSessionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'session_type', 'quiz', 'started_at', 'is_active', 'submitted', 'ip_address']
+    list_filter = ['session_type', 'is_active', 'submitted']
+    search_fields = ['user__email', 'session_token', 'ip_address']
+    readonly_fields = ['session_token', 'started_at', 'expires_at', 'submitted_at']
+    date_hierarchy = 'started_at'
+    
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'session_type', 'quiz', 'session_token')
+        }),
+        ('Timing', {
+            'fields': ('started_at', 'expires_at', 'submitted_at')
+        }),
+        ('Security', {
+            'fields': ('ip_address', 'user_agent')
+        }),
+        ('Status', {
+            'fields': ('is_active', 'submitted')
+        }),
+    )
+
+
+@admin.register(AssessmentAuditLog)
+class AssessmentAuditLogAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'user', 'event_type', 'severity', 'quiz', 'message_preview', 'ip_address']
+    list_filter = ['event_type', 'severity', 'created_at']
+    search_fields = ['user__email', 'message', 'ip_address']
+    readonly_fields = ['created_at', 'user', 'event_type', 'severity', 'message', 'metadata', 'ip_address', 'user_agent']
+    date_hierarchy = 'created_at'
+    
+    def message_preview(self, obj):
+        return obj.message[:75] + '...' if len(obj.message) > 75 else obj.message
+    message_preview.short_description = 'Message'
+    
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'session', 'quiz')
+        }),
+        ('Event Details', {
+            'fields': ('event_type', 'severity', 'message', 'metadata')
+        }),
+        ('Security', {
+            'fields': ('ip_address', 'user_agent')
+        }),
+        ('Timestamp', {
+            'fields': ('created_at',)
+        }),
+    )

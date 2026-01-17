@@ -172,19 +172,29 @@ def accept_ethical_agreement(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def submit_skill_assessment(request):
-    """Submit skill assessment answers."""
-    from .services import process_skill_assessment
+    """Submit skill assessment answers with rate limiting and audit logging."""
+    from .services import (
+        process_skill_assessment,
+        check_skill_assessment_rate_limit
+    )
     from django.utils import timezone
     
-    # Check if already completed
-    if request.user.skill_assessment_completed_at:
+    # Check rate limiting
+    rate_check = check_skill_assessment_rate_limit(request.user, request)
+    if not rate_check['allowed']:
         return Response(
-            {'error': 'You have already completed the skill assessment.'},
-            status=status.HTTP_400_BAD_REQUEST
+            {
+                'error': rate_check['error'],
+                'cooldown_remaining_hours': rate_check.get('cooldown_remaining_hours')
+            },
+            status=status.HTTP_429_TOO_MANY_REQUESTS
         )
     
+    # Get answers from request
     answers = request.data.get('answers', {})
-    result = process_skill_assessment(answers)
+    
+    # Process with enhanced validation and logging
+    result = process_skill_assessment(answers, user=request.user, request=request)
     
     if not result['success']:
         return Response(
@@ -192,6 +202,7 @@ def submit_skill_assessment(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    # Update user skill level
     request.user.skill_level = result['skill_level']
     request.user.skill_assessment_completed_at = timezone.now()
     request.user.save(update_fields=['skill_level', 'skill_assessment_completed_at'])
@@ -202,3 +213,4 @@ def submit_skill_assessment(request):
         'total': result['total'],
         'message': f'Your skill level has been set to {result["skill_level"]}.',
     })
+

@@ -9,6 +9,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.views import (
+    PasswordResetView, PasswordResetDoneView,
+    PasswordResetConfirmView, PasswordResetCompleteView
+)
+from django.urls import reverse_lazy
 
 from users.forms import LoginForm, RegisterForm
 
@@ -235,3 +240,55 @@ def leaderboard_view(request):
     top_users = UserXP.objects.select_related('user').order_by('-total_xp')[:50]
     return render(request, 'leaderboard.html', {'top_users': top_users})
 
+
+# Legal pages (public - no login required)
+def privacy_view(request):
+    """Privacy Policy page."""
+    return render(request, 'privacy.html')
+
+
+def terms_view(request):
+    """Terms of Service page."""
+    return render(request, 'terms.html')
+
+
+def about_view(request):
+    """About Us page."""
+    return render(request, 'about.html')
+
+
+def contact_view(request):
+    """Contact page."""
+    return render(request, 'contact.html')
+
+
+# Password Reset Views (using Django's built-in class-based views)
+class CustomPasswordResetView(PasswordResetView):
+    """Password reset request view."""
+    template_name = 'password_reset_form.html'
+    email_template_name = 'password_reset_email.html'
+    subject_template_name = 'password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    """Password reset email sent confirmation."""
+    template_name = 'password_reset_done.html'
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    """Password reset confirmation view (from email link)."""
+    template_name = 'password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    """Password reset complete view."""
+    template_name = 'password_reset_complete.html'
+
+
+# Wrap class-based views as functions for URL patterns
+password_reset_request = CustomPasswordResetView.as_view()
+password_reset_done = CustomPasswordResetDoneView.as_view()
+password_reset_confirm = CustomPasswordResetConfirmView.as_view()
+password_reset_complete = CustomPasswordResetCompleteView.as_view()

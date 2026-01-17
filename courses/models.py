@@ -434,3 +434,167 @@ class QuizAttempt(models.Model):
             started_at__lte=self.started_at
         ).count()
 
+
+class AssessmentSession(models.Model):
+    """
+    Tracks active assessment sessions to prevent cheating and session hijacking.
+    
+    Each quiz/assessment session gets a unique token. This is validated during
+    submission to ensure the same user and session are being used.
+    """
+    
+    class SessionType(models.TextChoices):
+        QUIZ = 'quiz', _('Quiz')
+        SKILL_ASSESSMENT = 'skill_assessment', _('Skill Assessment')
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='assessment_sessions'
+    )
+    session_type = models.CharField(
+        _('session type'),
+        max_length=20,
+        choices=SessionType.choices
+    )
+    
+    # Quiz session (null for skill assessments)
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name='sessions',
+        null=True,
+        blank=True
+    )
+    
+    # Session tracking
+    session_token = models.CharField(
+        _('session token'),
+        max_length=64,
+        unique=True,
+        db_index=True
+    )
+    started_at = models.DateTimeField(_('started at'), auto_now_add=True)
+    expires_at = models.DateTimeField(_('expires at'))
+    
+    # Security tracking
+    ip_address = models.GenericIPAddressField(_('IP address'), null=True, blank=True)
+    user_agent = models.TextField(_('user agent'), blank=True, default='')
+    
+    # Status
+    is_active = models.BooleanField(_('is active'), default=True)
+    submitted = models.BooleanField(_('submitted'), default=False)
+    submitted_at = models.DateTimeField(_('submitted at'), null=True, blank=True)
+    
+    class Meta:
+        verbose_name = _('assessment session')
+        verbose_name_plural = _('assessment sessions')
+        ordering = ['-started_at']
+        indexes = [
+            models.Index(fields=['user', 'quiz', 'is_active']),
+            models.Index(fields=['session_token']),
+        ]
+    
+    def __str__(self):
+        quiz_info = self.quiz.title if self.quiz else 'Skill Assessment'
+        return f"{self.user.email} - {quiz_info} ({self.session_token[:8]}...)"
+    
+    def is_expired(self):
+        """Check if the session has expired."""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def deactivate(self):
+        """Deactivate the session."""
+        self.is_active = False
+        self.save(update_fields=['is_active'])
+
+
+class AssessmentAuditLog(models.Model):
+    """
+    Comprehensive audit log for all assessment-related activities.
+    
+    Tracks submissions, validation failures, suspicious activities, and
+    security events for forensic analysis and cheating detection.
+    """
+    
+    class EventType(models.TextChoices):
+        SESSION_CREATED = 'session_created', _('Session Created')
+        SUBMISSION_SUCCESS = 'submission_success', _('Submission Success')
+        SUBMISSION_FAILED = 'submission_failed', _('Submission Failed')
+        VALIDATION_ERROR = 'validation_error', _('Validation Error')
+        TIME_LIMIT_EXCEEDED = 'time_limit_exceeded', _('Time Limit Exceeded')
+        ATTEMPT_LIMIT_EXCEEDED = 'attempt_limit_exceeded', _('Attempt Limit Exceeded')
+        SUSPICIOUS_TIMING = 'suspicious_timing', _('Suspicious Timing')
+        SESSION_HIJACK_ATTEMPT = 'session_hijack_attempt', _('Session Hijack Attempt')
+        RATE_LIMIT_HIT = 'rate_limit_hit', _('Rate Limit Hit')
+        MINIMUM_TIME_VIOLATION = 'minimum_time_violation', _('Minimum Time Violation')
+    
+    class Severity(models.TextChoices):
+        INFO = 'info', _('Info')
+        WARNING = 'warning', _('Warning')
+        ERROR = 'error', _('Error')
+        CRITICAL = 'critical', _('Critical')
+    
+    # User and assessment info
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='assessment_audit_logs'
+    )
+    
+    # Session (if applicable)
+    session = models.ForeignKey(
+        AssessmentSession,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs'
+    )
+    
+    # Quiz (if applicable)
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='audit_logs'
+    )
+    
+    # Event details
+    event_type = models.CharField(
+        _('event type'),
+        max_length=30,
+        choices=EventType.choices
+    )
+    severity = models.CharField(
+        _('severity'),
+        max_length=10,
+        choices=Severity.choices,
+        default=Severity.INFO
+    )
+    message = models.TextField(_('message'))
+    
+    # Additional context stored as JSON
+    metadata = models.JSONField(_('metadata'), default=dict, blank=True)
+    
+    # Security tracking
+    ip_address = models.GenericIPAddressField(_('IP address'), null=True, blank=True)
+    user_agent = models.TextField(_('user agent'), blank=True, default='')
+    
+    # Timestamp
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    
+    class Meta:
+        verbose_name = _('assessment audit log')
+        verbose_name_plural = _('assessment audit logs')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'event_type']),
+            models.Index(fields=['quiz', 'created_at']),
+            models.Index(fields=['severity', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"[{self.severity.upper()}] {self.user.email} - {self.event_type}: {self.message[:50]}"
+

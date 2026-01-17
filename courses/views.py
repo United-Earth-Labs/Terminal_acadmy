@@ -213,6 +213,26 @@ def recommended_courses(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, HasAcceptedEthicalAgreement])
+def start_quiz(request, quiz_id):
+    """Start a quiz session and return a session token."""
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Create a quiz session
+    from .services import create_quiz_session
+    session_info = create_quiz_session(quiz, request.user, request)
+    
+    return Response({
+        'session_token': session_info['session_token'],
+        'expires_at': session_info['expires_at'],
+        'quiz_id': quiz.id,
+        'quiz_title': quiz.title,
+        'time_limit': quiz.time_limit,
+        'max_attempts': quiz.max_attempts,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, HasAcceptedEthicalAgreement])
 def submit_quiz(request, quiz_id):
     """Submit quiz answers and get results."""
     quiz = get_object_or_404(
@@ -220,25 +240,19 @@ def submit_quiz(request, quiz_id):
         id=quiz_id
     )
     
-    # Get answers from request
+    # Get answers and session token from request
     answers = request.data.get('answers', {})
-    started_at_str = request.data.get('started_at')
+    session_token = request.data.get('session_token')
     
-    # Parse start time if provided
-    started_at = None
-    if started_at_str:
-        started_at = parse_datetime(started_at_str)
-        if not started_at:
-            # Try as timestamp
-            try:
-                from datetime import datetime
-                started_at = datetime.fromtimestamp(float(started_at_str), tz=timezone.utc)
-            except (ValueError, TypeError):
-                pass
-    
-    # Submit quiz using service
+    # Submit quiz using enhanced service
     from .services import submit_quiz as submit_quiz_service
-    result = submit_quiz_service(quiz, request.user, answers, started_at)
+    result = submit_quiz_service(
+        quiz=quiz,
+        user=request.user,
+        answers=answers,
+        session_token=session_token,
+        request=request
+    )
     
     if not result['success']:
         return Response(
@@ -266,7 +280,7 @@ def submit_quiz(request, quiz_id):
         'total_points': attempt.total_points,
         'attempt_number': result['attempt_number'],
         'attempts_remaining': result['attempts_remaining'],
-        'time_taken': attempt.time_taken,
+        'time_taken': result.get('time_taken'),
         'xp_awarded': lesson.xp_reward if (attempt.passed and attempt.xp_awarded) else 0,
         'results': scoring['results_by_question'],
     })

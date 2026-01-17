@@ -21,6 +21,18 @@ urlpatterns = [
     path('achievements/', views.achievements_view, name='achievements'),
     path('profile/', views.profile_view, name='profile'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
+    
+    # Legal pages
+    path('privacy/', views.privacy_view, name='privacy'),
+    path('terms/', views.terms_view, name='terms'),
+    path('about/', views.about_view, name='about'),
+    path('contact/', views.contact_view, name='contact'),
+    
+    # Password reset URLs (using Django's built-in views)
+    path('password_reset/', views.password_reset_request, name='password_reset'),
+    path('password_reset/done/', views.password_reset_done, name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('reset/done/', views.password_reset_complete, name='password_reset_complete'),
 ]
 
 
