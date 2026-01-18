@@ -10,33 +10,71 @@
             Complete challenges to unlock achievements and earn XP!
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-lg);">
-            {% for achievement in achievements %}
-            {% if achievement.id in unlocked %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
+            {% for item in achievements_data %}
+            {% with achievement=item.achievement progress=item.progress %}
+            
+            <!-- Unlocked Achievement -->
+            {% if progress.is_unlocked %}
             <div class="card" style="border: 2px solid var(--accent-green);">
-                {% else %}
-                <div class="card" style="opacity: 0.6;">
-                    {% endif %}
-                    <div
-                        style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
-                        <span style="font-size: 2rem;">{{ achievement.icon|default:"🏅" }}</span>
-                        <div>
-                            <h3 style="margin: 0;">{{ achievement.name }}</h3>
-                            <span class="badge" style="margin-top: var(--space-xs);">+{{ achievement.xp_reward }}
-                                XP</span>
-                        </div>
+                <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+                    <span style="font-size: 2.5rem;">{{ achievement.icon|default:"🏅" }}</span>
+                    <div>
+                        <h3 style="margin: 0;">{{ achievement.name }}</h3>
+                        <span class="badge" style="margin-top: var(--space-xs); background: var(--accent-green); color: var(--bg-primary);">
+                            +{{ achievement.xp_reward }} XP
+                        </span>
                     </div>
-                    <p style="margin: 0; font-size: 0.9rem;">{{ achievement.description }}</p>
-                    {% if achievement.id in unlocked %}
-                    <div style="margin-top: var(--space-md); color: var(--accent-green);">✓ Unlocked</div>
-                    {% endif %}
                 </div>
-                {% empty %}
-                <div class="card" style="grid-column: 1 / -1; text-align: center;">
-                    <p>No achievements available yet. Check back soon!</p>
+                <p style="margin: 0; font-size: 0.9rem;">{{ achievement.description }}</p>
+                <div style="margin-top: var(--space-md); color: var(--accent-green); font-weight: 600;">
+                    ✓ Unlocked
                 </div>
-                {% endfor %}
             </div>
+            
+            <!-- Locked Achievement with Progress -->
+            {% else %}
+            <div class="card" style="opacity: 0.8;">
+                <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+                    <span style="font-size: 2.5rem; filter: grayscale(100%);">{{ achievement.icon|default:"🔒" }}</span>
+                    <div>
+                        <h3 style="margin: 0;">{{ achievement.name }}</h3>
+                        <span class="badge" style="margin-top: var(--space-xs);">
+                            +{{ achievement.xp_reward }} XP
+                        </span>
+                    </div>
+                </div>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                    {{ achievement.description }}
+                </p>
+                
+                <!-- Progress Bar -->
+                {% if progress.required > 0 %}
+                <div style="margin-top: var(--space-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xs);">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Progress</span>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent-cyan);">
+                            {{ progress.current }}/{{ progress.required }}
+                        </span>
+                    </div>
+                    <div class="progress-bar" style="height: 6px;">
+                        <div class="progress-fill" style="width: {{ progress.percentage }}%;"></div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-xs);">
+                        {{ progress.percentage }}% complete
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% endwith %}
+            {% empty %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center;">
+                <p>No achievements available yet. Check back soon!</p>
+            </div>
+            {% endfor %}
         </div>
+    </div>
 </section>
 {% endblock %}

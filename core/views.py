@@ -28,8 +28,15 @@ def home(request):
 @login_required
 def dashboard(request):
     """User dashboard showing progress and courses."""
+    from progress.models import UserXP
+    
+    # Check if user is new (0 XP)
+    user_xp = UserXP.objects.filter(user=request.user).first()
+    is_new_user = not user_xp or user_xp.total_xp == 0
+    
     context = {
         'user': request.user,
+        'is_new_user': is_new_user,
     }
     return render(request, 'dashboard.html', context)
 
@@ -146,37 +153,186 @@ def skill_assessment(request):
 
 @login_required
 def courses_view(request):
-    """Browse available courses."""
+    """Browse available courses with progress tracking (optimized)."""
     from courses.models import Course
-    courses = Course.objects.filter(status='published').order_by('title')
-    return render(request, 'courses.html', {'courses': courses})
+    from progress.models import LessonProgress
+    from django.db.models import Count, Q
+    
+    courses = Course.objects.filter(status='published').prefetch_related(
+        'modules__lessons'
+    ).order_by('level', 'title')
+    
+    # OPTIMIZATION: Get ALL progress for this user in ONE query
+    # Build a dictionary mapping course_id -> completed_lesson_count
+    user_progress = {}
+    if courses.exists():
+        course_ids = [course.id for course in courses]
+        progress_data = LessonProgress.objects.filter(
+            user=request.user,
+            lesson__module__course_id__in=course_ids,
+            completed=True
+        ).values('lesson__module__course_id').annotate(
+            completed_count=Count('id')
+        )
+        
+        user_progress = {
+            item['lesson__module__course_id']: item['completed_count']
+            for item in progress_data
+        }
+    
+    # Build course data with cached calculations
+    courses_data = []
+    for course in courses:
+        # These use prefetched data (no additional queries)
+        modules = course.modules.all()
+        total_lessons = 0
+        total_xp = 0
+        total_duration = 0
+        
+        for module in modules:
+            lessons = module.lessons.all()
+            total_lessons += len(lessons)
+            total_xp += sum(lesson.xp_reward for lesson in lessons)
+            total_duration += sum(lesson.estimated_duration for lesson in lessons)
+        
+        # Get progress from our single query result
+        completed_lessons = user_progress.get(course.id, 0)
+        progress_percentage = round((completed_lessons / total_lessons * 100), 1) if total_lessons > 0 else 0
+        
+        courses_data.append({
+            'course': course,
+            'total_lessons': total_lessons,
+            'total_xp': total_xp,
+            'total_duration_hours': round(total_duration / 60, 1),
+            'completed_lessons': completed_lessons,
+            'progress_percentage': progress_percentage,
+            'is_enrolled': completed_lessons > 0,
+        })
+    
+    return render(request, 'courses.html', {'courses_data': courses_data})
 
 
 @login_required
 def labs_view(request):
-    """Browse available labs."""
+    """Browse labs with filtering and search."""
     from labs.models import Lab, LabAttempt
-    labs = Lab.objects.filter(is_active=True).order_by('difficulty', 'title')
-    completed_lab_ids = LabAttempt.objects.filter(
-        user=request.user, completed=True
-    ).values_list('lab_id', flat=True)
-    return render(request, 'labs.html', {
+    from courses.models import Course
+    from django.db.models import Q
+    
+    # Start with active labs
+    labs = Lab.objects.filter(is_active=True).select_related(
+        'lesson__module__course', 'environment'
+    )
+    
+    # Search query
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        labs = labs.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(instructions__icontains=search_query)
+        )
+    
+    # Difficulty filter
+    difficulty = request.GET.get('difficulty', '')
+    if difficulty and difficulty in ['easy', 'medium', 'hard', 'expert']:
+        labs = labs.filter(difficulty=difficulty)
+    
+    # Course/category filter
+    course_slug = request.GET.get('course', '')
+    if course_slug:
+        labs = labs.filter(lesson__module__course__slug=course_slug)
+    
+    # Sorting
+    sort_by = request.GET.get('sort', 'newest')
+    if sort_by == 'xp':
+        labs = labs.order_by('-xp_reward')
+    elif sort_by == 'difficulty':
+        labs = labs.order_by('difficulty', 'title')
+    elif sort_by == 'alphabetical':
+        labs = labs.order_by('title')
+    else:  # newest (default)
+        labs = labs.order_by('-created_at')
+    
+    # Get completed labs
+    completed_lab_ids = set()
+    if request.user.is_authenticated:
+        completed_lab_ids = set(
+            LabAttempt.objects.filter(
+                user=request.user,
+                completed=True
+            ).values_list('lab_id', flat=True)
+        )
+    
+    # Get all courses for filter dropdown
+    courses = Course.objects.filter(
+        status='published',
+        modules__lessons__labs__is_active=True
+    ).distinct().order_by('title')
+    
+    context = {
         'labs': labs,
-        'completed_lab_ids': list(completed_lab_ids),
-    })
+        'completed_lab_ids': completed_lab_ids,
+        'courses': courses,
+        'search_query': search_query,
+        'selected_difficulty': difficulty,
+        'selected_course': course_slug,
+        'selected_sort': sort_by,
+    }
+    return render(request, 'labs.html', context)
 
 
 @login_required
 def course_detail_view(request, slug):
-    """View course detail."""
+    """View course detail with progress tracking."""
     from django.shortcuts import get_object_or_404
     from courses.models import Course
+    from progress.models import LessonProgress
+    
     course = get_object_or_404(Course, slug=slug, status='published')
     modules = course.modules.prefetch_related('lessons').order_by('order')
-    return render(request, 'course_detail.html', {
+    
+    # Calculate total lessons and XP
+    total_lessons = sum(module.lessons.count() for module in modules)
+    total_xp = sum(
+        lesson.xp_reward 
+        for module in modules 
+        for lesson in module.lessons.all()
+    )
+    total_duration = sum(
+        lesson.estimated_duration 
+        for module in modules 
+        for lesson in module.lessons.all()
+    )
+    
+    # Get user progress if authenticated
+    completed_lesson_ids = set()
+    completed_lessons = 0
+    progress_percentage = 0
+    
+    if request.user.is_authenticated:
+        completed_lesson_ids = set(
+            LessonProgress.objects.filter(
+                user=request.user,
+                lesson__module__course=course,
+                completed=True
+            ).values_list('lesson_id', flat=True)
+        )
+        completed_lessons = len(completed_lesson_ids)
+        progress_percentage = round((completed_lessons / total_lessons * 100), 1) if total_lessons > 0 else 0
+    
+    context = {
         'course': course,
         'modules': modules,
-    })
+        'total_lessons': total_lessons,
+        'total_xp': total_xp,
+        'total_duration_hours': round(total_duration / 60, 1),
+        'completed_lessons': completed_lessons,
+        'progress_percentage': progress_percentage,
+        'completed_lesson_ids': completed_lesson_ids,
+        'is_enrolled': completed_lessons > 0,  # Consider enrolled if any lesson completed
+    }
+    return render(request, 'course_detail.html', context)
 
 
 @login_required
@@ -217,13 +373,29 @@ def lab_detail_view(request, lab_id):
 
 @login_required
 def achievements_view(request):
-    """View user achievements."""
+    """View achievements with progress tracking."""
     from progress.models import Achievement, UserAchievement
-    all_achievements = Achievement.objects.filter(is_hidden=False)
-    user_achievements = UserAchievement.objects.filter(user=request.user).values_list('achievement_id', flat=True)
+    from progress.utils import calculate_achievement_progress
+    
+    achievements = Achievement.objects.filter(is_hidden=False).order_by('category', 'xp_reward')
+    
+    # Get unlocked achievement IDs
+    unlocked = set(
+        UserAchievement.objects.filter(user=request.user).values_list('achievement_id', flat=True)
+    )
+    
+    # Calculate progress for each achievement
+    achievements_with_progress = []
+    for achievement in achievements:
+        progress = calculate_achievement_progress(request.user, achievement)
+        achievements_with_progress.append({
+            'achievement': achievement,
+            'progress': progress
+        })
+    
     return render(request, 'achievements.html', {
-        'achievements': all_achievements,
-        'unlocked': list(user_achievements),
+        'achievements_data': achievements_with_progress,
+        'unlocked': unlocked
     })
 
 

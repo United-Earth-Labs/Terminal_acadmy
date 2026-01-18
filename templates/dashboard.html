@@ -12,18 +12,82 @@
         </div>
 
         <!-- Stats Overview -->
+        <!-- Welcome Card for New Users -->
+        {% if is_new_user %}
+        <div class="welcome-card" id="welcome-card" style="margin-bottom: var(--space-2xl);">
+            <button class="welcome-close" onclick="dismissWelcome()" aria-label="Close">×</button>
+            <h2 style="margin-bottom: var(--space-md);">🎓 Welcome to Terminal Academy!</h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+                Start your ethical hacking journey with these quick steps:
+            </p>
+            <div class="welcome-tips">
+                <div class="welcome-tip">
+                    <span class="tip-number">1</span>
+                    <div>
+                        <strong>Complete your Skill Assessment</strong>
+                        <p>Find the right starting point for your level</p>
+                    </div>
+                </div>
+                <div class="welcome-tip">
+                    <span class="tip-number">2</span>
+                    <div>
+                        <strong>Start with Linux Fundamentals</strong>
+                        <p>Build a strong foundation in command-line basics</p>
+                    </div>
+                </div>
+                <div class="welcome-tip">
+                    <span class="tip-number">3</span>
+                    <div>
+                        <strong>Try your first lab</strong>
+                        <p>Hands-on practice to earn XP and level up</p>
+                    </div>
+                </div>
+                <div class="welcome-tip">
+                    <span class="tip-number">4</span>
+                    <div>
+                        <strong>Unlock Achievements</strong>
+                        <p>Track your progress and earn badges</p>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md);">
+                <a href="/skill-assessment/" class="btn btn-primary">Take Assessment</a>
+                <a href="/courses/" class="btn btn-secondary">Browse Courses</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Stats Overview -->
         <div class="stats-grid" style="margin-bottom: var(--space-2xl);">
             <div class="stat-card">
                 <div class="stat-value" id="user-xp">0</div>
-                <div class="stat-label">Total XP</div>
+                <div class="stat-label">
+                    Total XP
+                    <span class="tooltip-container">
+                        <span class="tooltip-icon">ℹ️</span>
+                        <span class="tooltip-text">Experience Points - Earn XP by completing labs, courses, and challenges. More XP = higher level!</span>
+                    </span>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="user-level">1</div>
-                <div class="stat-label">Level</div>
+                <div class="stat-label">
+                    Level
+                    <span class="tooltip-container">
+                        <span class="tooltip-icon">ℹ️</span>
+                        <span class="tooltip-text">Your current skill level based on total XP. Higher levels unlock advanced content.</span>
+                    </span>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="user-streak">0</div>
-                <div class="stat-label">Day Streak 🔥</div>
+                <div class="stat-label">
+                    Day Streak 🔥
+                    <span class="tooltip-container">
+                        <span class="tooltip-icon">ℹ️</span>
+                        <span class="tooltip-text">Consecutive days you've been active. Login daily to maintain your streak and earn bonus XP!</span>
+                    </span>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="labs-completed">0</div>
@@ -167,5 +231,26 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadStats);
+
+    // Welcome card dismissal
+    function dismissWelcome() {
+        const card = document.getElementById('welcome-card');
+        if (card) {
+            card.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                card.style.display = 'none';
+                // Save dismissal to localStorage
+                localStorage.setItem('welcomeCardDismissed', 'true');
+            }, 300);
+        }
+    }
+
+    // Check if welcome card was previously dismissed
+    document.addEventListener('DOMContentLoaded', () => {
+        const card = document.getElementById('welcome-card');
+        if (card && localStorage.getItem('welcomeCardDismissed') === 'true') {
+            card.style.display = 'none';
+        }
+    });
 </script>
 {% endblock %}

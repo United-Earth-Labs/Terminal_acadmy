@@ -25,32 +25,38 @@
             </a>
         </div>
 
-        <!-- Terminal Demo -->
+        <!-- Interactive Terminal Demo -->
         <div class="terminal" style="max-width: 700px; margin: var(--space-2xl) auto 0; text-align: left;">
             <div class="terminal-header">
                 <span class="terminal-dot red"></span>
                 <span class="terminal-dot yellow"></span>
                 <span class="terminal-dot green"></span>
-                <span class="terminal-title">academy-lab ~ student</span>
+                <span class="terminal-title">student@academy:~$</span>
             </div>
-            <div class="terminal-body" style="height: auto; padding: var(--space-lg);">
-                <div class="terminal-output">
-                    <span class="terminal-prompt">student@academy:~$</span> <span class="terminal-command">nmap
-                        target</span>
-                    Starting Nmap 7.94 ( https://nmap.org )
-                    Nmap scan report for target (192.168.1.100)
+            <div class="terminal-body" id="demo-terminal-output" style="height: 350px; overflow-y: auto;">
+                <div class="terminal-output" id="demo-output-container">
+                    <span style="color: var(--accent-cyan);">🎯 Welcome to the Terminal Academy demo!</span>
+                    Type <span style="color: var(--accent-yellow);">help</span> to see available commands.
+                    Try: <span style="color: var(--accent-green);">cat welcome.txt</span>
 
-                    PORT STATE SERVICE VERSION
-                    22/tcp open ssh OpenSSH 8.9
-                    80/tcp open http Apache 2.4
-                    443/tcp open https
-
-                    Nmap done: 1 IP address (1 host up)
-
-                    <span class="terminal-prompt">student@academy:~$</span> <span class="cursor"></span>
+                </div>
+            </div>
+            <div style="padding: var(--space-md); background: var(--bg-tertiary); border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+                <div class="terminal-input-line">
+                    <span class="terminal-prompt" id="demo-prompt">student@academy:~$</span>
+                    <input type="text" 
+                           class="terminal-input" 
+                           id="demo-command-input"
+                           placeholder="Type 'help' to get started..." 
+                           autofocus 
+                           autocomplete="off">
                 </div>
             </div>
         </div>
+        
+        <p style="text-align: center; margin-top: var(--space-lg); color: var(--text-muted);">
+            👆 This is a live demo! Try typing commands above.
+        </p>
     </div>
 </section>
 
@@ -163,4 +169,173 @@
         </a>
     </div>
 </section>
+
+{% block extra_js %}
+<script>
+// Demo terminal - Client-side only, no backend calls
+(function() {
+    const demoOutput = document.getElementById('demo-output-container');
+    const demoInput = document.getElementById('demo-command-input');
+    const demoTerminalBody = document.getElementById('demo-terminal-output');
+    
+    if (!demoOutput || !demoInput) return; // Exit if elements don't exist
+    
+    // Demo filesystem
+    const files = {
+        'welcome.txt': `Welcome to Terminal Academy!
+
+Learn ethical hacking through hands-on practice in a safe, simulated environment.
+
+🎓 50+ Interactive Labs
+🏆 Achievements & XP System
+📚 Structured Learning Paths
+🔒 100% Legal & Safe
+
+Type "help" to see what you can do here!`,
+        'secret.txt': `🎉 Congratulations! You found the hidden file!
+
+FLAG{curious_explorer_2024}
+
+This is just a taste of what you'll find in our real labs.
+Sign up to access 50+ challenges with real CTF-style flags!`,
+        'notes.txt': `📝 Security Best Practices:
+
+1. Always get permission before testing
+2. Never use skills maliciously
+3. Keep learning and stay curious
+4. Join our community!
+
+Ready to level up? Sign up above! ⬆️`,
+        'courses.txt': `📚 Available Courses:
+
+1. Linux Fundamentals (10 lessons, 500 XP)
+2. Web Security Basics (15 lessons, 750 XP)
+3. Network Reconnaissance (12 lessons, 600 XP)
+
+Sign up to start learning!`
+    };
+    
+    // Command handlers
+    const commands = {
+        'help': () => `<span style="color: var(--accent-cyan);">Available commands:</span>
+  <span style="color: var(--accent-green);">ls</span>          - List files in current directory
+  <span style="color: var(--accent-green);">cat</span> \u003cfile\u003e  - Display file contents
+  <span style="color: var(--accent-green);">pwd</span>         - Show current directory
+  <span style="color: var(--accent-green);">whoami</span>      - Display current user
+  <span style="color: var(--accent-green);">clear</span>       - Clear the terminal
+  <span style="color: var(--accent-green);">hint</span>        - Get a hint
+
+<span style="color: var(--accent-yellow);">💡 Try:</span> cat welcome.txt`,
+        
+        'ls': () => `welcome.txt  secret.txt  notes.txt  courses.txt`,
+        
+        'ls -la': () => `-rw-r--r-- 1 student student  245 Jan 18 12:00 welcome.txt
+-rw-r--r-- 1 student student  156 Jan 18 12:00 secret.txt
+-rw-r--r-- 1 student student  198 Jan 18 12:00 notes.txt
+-rw-r--r-- 1 student student  182 Jan 18 12:00 courses.txt`,
+        
+        'pwd': () => `/home/student`,
+        
+        'whoami': () => `student`,
+        
+        'clear': () => 'CLEAR',
+        
+        'hint': () => `<span style="color: var(--accent-yellow);">💡 Hint:</span> Try listing files with <span style="color: var(--accent-green);">ls</span>, then read them with <span style="color: var(--accent-green);">cat filename</span>
+
+There might be something interesting in secret.txt... 👀`,
+        
+        // Easter eggs
+        'hack': () => `<span style="color: var(--accent-red);">⚠️ Whoa there!</span> 
+
+First, learn <em>how</em> to hack ethically with our courses! 😉
+<a href="/register/" style="color: var(--accent-cyan);">Sign up</a> to start your journey.`,
+        
+        'sudo rm -rf /': () => `<span style="color: var(--accent-red);">😱 Nice try!</span>
+
+But this is a <strong>safe</strong> environment. No real systems harmed!
+
+Join us to learn dangerous commands <em>safely</em>. 🛡️`,
+        
+        'exit': () => `<span style="color: var(--accent-yellow);">👋 Leaving so soon?</span>
+
+<a href="/register/" style="color: var(--accent-cyan);">Sign up</a> instead to access real labs!`,
+    };
+    
+    // Cat command handler
+    function handleCat(args) {
+        const filename = args.trim();
+        if (!filename) {
+            return `cat: missing file operand
+Try 'cat welcome.txt'`;
+        }
+        
+        if (files[filename]) {
+            return files[filename];
+        }
+        
+        return `cat: ${escapeHtml(filename)}: No such file or directory
+
+Try <span style="color: var(--accent-green);">ls</span> to see available files.`;
+    }
+    
+    // Execute command
+    function executeCommand(cmd) {
+        cmd = cmd.trim().toLowerCase();
+        
+        // Special case: clear
+        if (cmd === 'clear' || cmd === 'cls') {
+            demoOutput.innerHTML = `<span style="color: var(--accent-cyan);">Terminal cleared. Type help for commands.</span>
+
+`;
+            return;
+        }
+        
+        // Show command
+        appendOutput(`<span class="terminal-prompt">student@academy:~$</span> <span class="terminal-command">${escapeHtml(cmd)}</span>`);
+        
+        // Handle cat separately
+        if (cmd.startsWith('cat ')) {
+            const filename = cmd.substring(4);
+            appendOutput(handleCat(filename));
+            return;
+        }
+        
+        // Check if command exists
+        if (commands[cmd]) {
+            const result = commands[cmd]();
+            appendOutput(result);
+        } else if (cmd) {
+            appendOutput(`<span style="color: var(--accent-red);">${escapeHtml(cmd)}: command not found</span>
+
+Type <span style="color: var(--accent-green);">help</span> to see available commands.`);
+        }
+    }
+    
+    function appendOutput(html) {
+        demoOutput.innerHTML += '\n' + html;
+        demoTerminalBody.scrollTop = demoTerminalBody.scrollHeight;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Enter key handler
+    demoInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const cmd = demoInput.value;
+            executeCommand(cmd);
+            demoInput.value = '';
+        }
+    });
+    
+    // Auto-focus on click
+    demoTerminalBody.addEventListener('click', () => {
+        demoInput.focus();
+    });
+})();
+</script>
+{% endblock %}
 {% endblock %}

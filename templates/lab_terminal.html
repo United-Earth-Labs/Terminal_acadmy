@@ -275,17 +275,53 @@
 
     let commandHistory = [];
     let historyIndex = -1;
+    let currentCommand = ''; // Store current typing when browsing history
     let hintsRevealed = 0;
     let solutionViewed = false;
     let completedObjectives = new Set();
     let labCompleted = false;
+
+    // Load command history from localStorage
+    function loadCommandHistory() {
+        try {
+            const stored = localStorage.getItem(`terminalHistory_lab${labId}`);
+            if (stored) {
+                commandHistory = JSON.parse(stored);
+                historyIndex = commandHistory.length;
+            }
+        } catch (err) {
+            console.error('Failed to load command history:', err);
+        }
+    }
+
+    // Save command history to localStorage
+    function saveCommandHistory() {
+        try {
+            localStorage.setItem(`terminalHistory_lab${labId}`, JSON.stringify(commandHistory));
+        } catch (err) {
+            console.error('Failed to save command history:', err);
+        }
+    }
+
+    // Load history on page load
+    loadCommandHistory();
 
     // Execute command
     async function executeCommand(cmd) {
         if (!cmd.trim()) return;
         if (labCompleted) return;
 
-        commandHistory.push(cmd);
+        // Add to history (avoid consecutive duplicates)
+        if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== cmd) {
+            commandHistory.push(cmd);
+            
+            // Limit history to last 50 commands
+            if (commandHistory.length > 50) {
+                commandHistory.shift();
+            }
+            
+            saveCommandHistory();
+        }
         historyIndex = commandHistory.length;
 
         appendOutput(`<span class="terminal-prompt">${promptEl.textContent}</span> <span class="terminal-command">${escapeHtml(cmd)}</span>`);
@@ -400,13 +436,21 @@
         }
     }
 
-    // Input handling
+    // Input handling with improved history navigation
     commandInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             executeCommand(commandInput.value);
             commandInput.value = '';
+            currentCommand = '';
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
+            if (commandHistory.length === 0) return;
+            
+            // Save current input if at the end
+            if (historyIndex >= commandHistory.length) {
+                currentCommand = commandInput.value;
+            }
+            
             if (historyIndex > 0) {
                 historyIndex--;
                 commandInput.value = commandHistory[historyIndex];
@@ -416,9 +460,10 @@
             if (historyIndex < commandHistory.length - 1) {
                 historyIndex++;
                 commandInput.value = commandHistory[historyIndex];
-            } else {
+            } else if (historyIndex === commandHistory.length - 1) {
+                // Restore current typing
                 historyIndex = commandHistory.length;
-                commandInput.value = '';
+                commandInput.value = currentCommand;
             }
         }
     });

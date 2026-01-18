@@ -10,16 +10,58 @@
             Learn ethical hacking from beginner to advanced
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
-            {% for course in courses %}
-            <div class="card">
-                <span class="badge badge-{{ course.difficulty_level }}">{{ course.get_difficulty_level_display }}</span>
-                <h3 style="margin-top: var(--space-md);">{{ course.title }}</h3>
-                <p style="color: var(--text-muted);">{{ course.description|truncatewords:20 }}</p>
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md);">
-                    <span>{{ course.modules.count }} modules</span>
-                    <a href="#" class="btn btn-primary">Start Course</a>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: var(--space-lg);">
+            {% for item in courses_data %}
+            <div class="card" style="display: flex; flex-direction: column;">
+                <div style="flex: 1;">
+                    <span class="badge badge-{{ item.course.level }}">{{ item.course.get_level_display }}</span>
+                    <h3 style="margin-top: var(--space-md);">{{ item.course.title }}</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem; margin: var(--space-sm) 0;">
+                        {{ item.course.description|truncatewords:15 }}
+                    </p>
+                    
+                    <!-- Course Stats -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); margin: var(--space-md) 0; padding: var(--space-sm) 0; border-top: 1px solid var(--bg-tertiary); border-bottom: 1px solid var(--bg-tertiary);">
+                        <div style="font-size: 0.85rem;">
+                            <span style="color: var(--text-muted);">📚 Modules:</span>
+                            <strong style="margin-left: 0.25rem;">{{ item.course.modules.count }}</strong>
+                        </div>
+                        <div style="font-size: 0.85rem;">
+                            <span style="color: var(--text-muted);">📝 Lessons:</span>
+                            <strong style="margin-left: 0.25rem;">{{ item.total_lessons }}</strong>
+                        </div>
+                        <div style="font-size: 0.85rem; grid-column: 1 / -1;">
+                            <span style="color: var(--text-muted);">⭐ Total XP:</span>
+                            <strong style="margin-left: 0.25rem; color: var(--accent-green);">+{{ item.total_xp }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar (if enrolled) -->
+                    {% if item.is_enrolled %}
+                    <div style="margin: var(--space-md) 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xs);">
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">Your Progress</span>
+                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent-green);">{{ item.progress_percentage }}%</span>
+                        </div>
+                        <div class="progress-bar" style="height: 6px;">
+                            <div class="progress-fill" style="width: {{ item.progress_percentage }}%;"></div>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: var(--space-xs);">
+                            {{ item.completed_lessons }}/{{ item.total_lessons }} lessons
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- CTA Button -->
+                <div style="margin-top: var(--space-md);">
+                    <a href="/courses/{{ item.course.slug }}/" class="btn {% if item.is_enrolled %}btn-secondary{% else %}btn-primary{% endif %}" style="width: 100%; justify-content: center;">
+                        {% if item.is_enrolled %}
+                            Continue Learning →
+                        {% else %}
+                            Start Course →
+                        {% endif %}
+                    </a>
                 </div>
             </div>
             {% empty %}

@@ -7,52 +7,93 @@
     <div class="container">
         <a href="/courses/" style="color: var(--text-muted);">← Back to Courses</a>
 
-        <div
-            style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: var(--space-lg); gap: var(--space-xl); flex-wrap: wrap;">
+        <!-- Course Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: var(--space-lg); gap: var(--space-xl); flex-wrap: wrap;">
             <div style="flex: 1; min-width: 300px;">
-                <span class="badge badge-{{ course.difficulty_level }}">{{ course.get_difficulty_level_display }}</span>
+                <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
                 <h1 style="margin-top: var(--space-md);">{{ course.title }}</h1>
-                <p style="font-size: 1.1rem; color: var(--text-muted);">{{ course.description }}</p>
-
-                <div style="display: flex; gap: var(--space-lg); margin-top: var(--space-lg);">
-                    <div>
-                        <strong>{{ modules.count }}</strong>
-                        <span style="color: var(--text-muted);">modules</span>
-                    </div>
-                    <div>
-                        <strong>{{ course.estimated_hours }}</strong>
-                        <span style="color: var(--text-muted);">hours</span>
-                    </div>
-                </div>
+                <p style="font-size: 1.1rem; color: var(--text-secondary); margin-top: var(--space-md);">
+                    {{ course.description }}
+                </p>
             </div>
 
-            <div class="card" style="width: 300px;">
-                <h3>Start Learning</h3>
-                <p style="color: var(--text-muted);">Continue where you left off</p>
-                <button class="btn btn-primary" style="width: 100%; justify-content: center;">
+            <!-- Course Stats Card -->
+            <div class="card" style="width: 320px;">
+                <h3 style="margin-bottom: var(--space-md);">Course Overview</h3>
+                
+                <div style="display: grid; gap: var(--space-sm); margin-bottom: var(--space-lg);">
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--bg-tertiary);">
+                        <span style="color: var(--text-muted);">📚 Modules</span>
+                        <strong>{{ modules.count }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--bg-tertiary);">
+                        <span style="color: var(--text-muted);">📝 Lessons</span>
+                        <strong>{{ total_lessons }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-sm) 0;">
+                        <span style="color: var(--text-muted);">⭐ Total XP</span>
+                        <strong style="color: var(--accent-green);">+{{ total_xp }}</strong>
+                    </div>
+                </div>
+
+                {% if is_enrolled %}
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: var(--space-sm);">
+                    Your Progress: {{ progress_percentage }}%
+                </p>
+                <div class="progress-bar" style="margin-bottom: var(--space-md);">
+                    <div class="progress-fill" style="width: {{ progress_percentage }}%;"></div>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: var(--space-lg);">
+                    {{ completed_lessons }}/{{ total_lessons }} lessons completed
+                </p>
+                <a href="#course-content" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Continue Learning
+                </a>
+                {% else %}
+                <a href="#course-content" class="btn btn-primary" style="width: 100%; justify-content: center;">
                     Start Course
-                </button>
+                </a>
+                {% endif %}
             </div>
         </div>
 
-        <h2 style="margin-top: var(--space-2xl);">Course Content</h2>
+        <!-- Course Content -->
+        <h2 id="course-content" style="margin-top: var(--space-2xl);">Course Content</h2>
 
         <div style="margin-top: var(--space-lg);">
             {% for module in modules %}
             <div class="card" style="margin-bottom: var(--space-md);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
                     <h3 style="margin: 0;">{{ forloop.counter }}. {{ module.title }}</h3>
-                    <span style="color: var(--text-muted);">{{ module.lessons.count }} lessons</span>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">{{ module.lessons.count }} lessons</span>
                 </div>
-                <p style="color: var(--text-muted); margin: var(--space-sm) 0;">{{ module.description }}</p>
+                <p style="color: var(--text-secondary); margin: var(--space-sm) 0;">{{ module.description }}</p>
 
                 <ul style="list-style: none; padding: 0; margin: var(--space-md) 0 0 0;">
                     {% for lesson in module.lessons.all %}
-                    <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--bg-tertiary);">
-                        <span style="color: var(--text-muted);">{{ lesson.order }}.</span>
-                        {{ lesson.title }}
-                        <span style="color: var(--accent-green); float: right;">{{ lesson.estimated_minutes }}
-                            min</span>
+                    <li class="lesson-item {% if lesson.id in completed_lesson_ids %}completed{% endif %}" 
+                        style="padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--bg-tertiary); display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                            {% if lesson.id in completed_lesson_ids %}
+                            <span style="color: var(--accent-green);">✅</span>
+                            {% else %}
+                            <span style="color: var(--text-muted); opacity: 0.5;">⭕</span>
+                            {% endif %}
+                            <span {% if lesson.id not in completed_lesson_ids %}style="opacity: 0.7;"{% endif %}>
+                                {{ lesson.order }}. {{ lesson.title }}
+                            </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: var(--space-md);">
+                            {% if lesson.requires_lab_completion %}
+                            <span style="font-size: 0.85rem;" title="Includes lab">🧪</span>
+                            {% endif %}
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">
+                                {{ lesson.estimated_duration }} min
+                            </span>
+                            <span style="color: var(--accent-cyan); font-size: 0.85rem;">
+                                +{{ lesson.xp_reward }} XP
+                            </span>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>

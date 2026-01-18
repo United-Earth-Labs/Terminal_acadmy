@@ -14,6 +14,72 @@
             <strong>🔒 Safe Environment:</strong> All labs are 100% simulated. No real systems are accessed.
         </div>
 
+        <!-- Filter & Search Bar -->
+        <div class="filter-bar" style="background: var(--bg-secondary); padding: var(--space-lg); border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: var(--space-xl);">
+            <form method="GET" action="/labs/" style="display: flex; gap: var(--space-md); flex-wrap: wrap; align-items: center;">
+                
+                <!-- Search -->
+                <input type="search"
+                       name="q"
+                       value="{{ search_query }}"
+                       placeholder="🔍 Search labs..."
+                       class="search-input"
+                       style="flex: 1; min-width: 250px; padding: var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);">
+                
+                <!-- Difficulty Filter -->
+                <select name="difficulty" 
+                        class="filter-select"
+                        onchange="this.form.submit()"
+                        style="padding: var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);">
+                    <option value="">All Difficulties</option>
+                    <option value="easy" {% if selected_difficulty == 'easy' %}selected{% endif %}>Easy</option>
+                    <option value="medium" {% if selected_difficulty == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="hard" {% if selected_difficulty == 'hard' %}selected{% endif %}>Hard</option>
+                    <option value="expert" {% if selected_difficulty == 'expert' %}selected{% endif %}>Expert</option>
+                </select>
+                
+                <!-- Course Filter -->
+                <select name="course" 
+                        class="filter-select"
+                        onchange="this.form.submit()"
+                        style="padding: var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);">
+                    <option value="">All Categories</option>
+                    {% for course in courses %}
+                    <option value="{{ course.slug }}" {% if selected_course == course.slug %}selected{% endif %}>
+                        {{ course.title }}
+                    </option>
+                    {% endfor %}
+                </select>
+                
+                <!-- Sort -->
+                <select name="sort" 
+                        class="filter-select"
+                        onchange="this.form.submit()"
+                        style="padding: var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);">
+                    <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="xp" {% if selected_sort == 'xp' %}selected{% endif %}>Highest XP</option>
+                    <option value="difficulty" {% if selected_sort == 'difficulty' %}selected{% endif %}>By Difficulty</option>
+                    <option value="alphabetical" {% if selected_sort == 'alphabetical' %}selected{% endif %}>A-Z</option>
+                </select>
+                
+                <!-- Search Button & Clear -->
+                <button type="submit" class="btn btn-primary">Search</button>
+                
+                {% if search_query or selected_difficulty or selected_course or selected_sort != 'newest' %}
+                <a href="/labs/" class="btn btn-secondary">Clear Filters</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Results Count -->
+        {% if search_query or selected_difficulty or selected_course %}
+        <p style="color: var(--text-muted); margin-bottom: var(--space-md);">
+            Found {{ labs.count }} lab{{ labs.count|pluralize }}
+            {% if search_query %} matching "{{ search_query }}"{% endif %}
+        </p>
+        {% endif %}
+
+        <!-- Labs Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
             {% for lab in labs %}
             <div class="card" {% if lab.id in completed_lab_ids %}style="border: 2px solid var(--accent-green);"
@@ -40,9 +106,20 @@
                 </a>
             </div>
             {% empty %}
-            <div class="card" style="grid-column: 1 / -1; text-align: center;">
-                <p>No labs available yet. Check back soon!</p>
-                <p style="color: var(--text-muted);">Labs will be added by administrators.</p>
+            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: var(--space-2xl);">
+                <h3>No labs found</h3>
+                <p style="color: var(--text-muted);">
+                    {% if search_query or selected_difficulty or selected_course %}
+                    No labs match your current filters. Try adjusting your search or filters.
+                    {% else %}
+                    No labs available yet. Check back soon!
+                    {% endif %}
+                </p>
+                {% if search_query or selected_difficulty or selected_course or selected_sort != 'newest' %}
+                <a href="/labs/" class="btn btn-primary" style="margin-top: var(--space-md);">
+                    Clear All Filters
+                </a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
