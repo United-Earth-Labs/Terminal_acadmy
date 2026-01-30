@@ -336,6 +336,76 @@ def course_detail_view(request, slug):
 
 
 @login_required
+def lesson_detail_view(request, course_slug, lesson_slug):
+    """View individual lesson with content and lab access."""
+    from django.shortcuts import get_object_or_404
+    from courses.models import Course, Lesson
+    from labs.models import Lab
+    from progress.models import LessonProgress
+    
+    course = get_object_or_404(Course, slug=course_slug, status='published')
+    lesson = get_object_or_404(
+        Lesson.objects.select_related('module').prefetch_related('resources'),
+        slug=lesson_slug,
+        module__course=course
+    )
+    module = lesson.module
+    
+    # Get lesson's lab (if any)
+    lesson_lab = Lab.objects.filter(lesson=lesson, is_active=True).first()
+    
+    # Check if lesson is completed
+    is_completed = LessonProgress.objects.filter(
+        user=request.user,
+        lesson=lesson,
+        completed=True
+    ).exists()
+    
+    # Get previous and next lessons
+    previous_lesson = Lesson.objects.filter(
+        module=module,
+        order__lt=lesson.order
+    ).order_by('-order').first()
+    
+    next_lesson = Lesson.objects.filter(
+        module=module,
+        order__gt=lesson.order
+    ).order_by('order').first()
+    
+    # If no next lesson in this module, check next module
+    if not next_lesson:
+        from courses.models import Module
+        next_module = Module.objects.filter(
+            course=course,
+            order__gt=module.order
+        ).order_by('order').first()
+        if next_module:
+            next_lesson = next_module.lessons.order_by('order').first()
+    
+    # Calculate module progress
+    total_lessons_in_module = module.lessons.count()
+    completed_lessons_in_module = LessonProgress.objects.filter(
+        user=request.user,
+        lesson__module=module,
+        completed=True
+    ).count()
+    module_progress_percentage = round((completed_lessons_in_module / total_lessons_in_module * 100), 1) if total_lessons_in_module > 0 else 0
+    
+    return render(request, 'lesson_detail.html', {
+        'course': course,
+        'module': module,
+        'lesson': lesson,
+        'lesson_lab': lesson_lab,
+        'is_completed': is_completed,
+        'previous_lesson': previous_lesson,
+        'next_lesson': next_lesson,
+        'total_lessons_in_module': total_lessons_in_module,
+        'completed_lessons_in_module': completed_lessons_in_module,
+        'module_progress_percentage': module_progress_percentage,
+    })
+
+
+@login_required
 @ensure_csrf_cookie
 def lab_detail_view(request, lab_id):
     """View lab detail / terminal interface."""

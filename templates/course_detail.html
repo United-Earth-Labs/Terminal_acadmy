@@ -72,28 +72,33 @@
                 <ul style="list-style: none; padding: 0; margin: var(--space-md) 0 0 0;">
                     {% for lesson in module.lessons.all %}
                     <li class="lesson-item {% if lesson.id in completed_lesson_ids %}completed{% endif %}" 
-                        style="padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--bg-tertiary); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
-                            {% if lesson.id in completed_lesson_ids %}
-                            <span style="color: var(--accent-green);">✅</span>
-                            {% else %}
-                            <span style="color: var(--text-muted); opacity: 0.5;">⭕</span>
-                            {% endif %}
-                            <span {% if lesson.id not in completed_lesson_ids %}style="opacity: 0.7;"{% endif %}>
-                                {{ lesson.order }}. {{ lesson.title }}
-                            </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: var(--space-md);">
-                            {% if lesson.requires_lab_completion %}
-                            <span style="font-size: 0.85rem;" title="Includes lab">🧪</span>
-                            {% endif %}
-                            <span style="color: var(--text-muted); font-size: 0.85rem;">
-                                {{ lesson.estimated_duration }} min
-                            </span>
-                            <span style="color: var(--accent-cyan); font-size: 0.85rem;">
-                                +{{ lesson.xp_reward }} XP
-                            </span>
-                        </div>
+                        style="border-bottom: 1px solid var(--bg-tertiary);">
+                        <a href="/courses/{{ course.slug }}/lessons/{{ lesson.slug }}/" 
+                           style="padding: var(--space-sm) var(--space-md); display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: inherit; transition: background 0.2s;"
+                           onmouseover="this.style.background='var(--bg-tertiary)'" 
+                           onmouseout="this.style.background='transparent'">
+                            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                                {% if lesson.id in completed_lesson_ids %}
+                                <span style="color: var(--accent-green);">✅</span>
+                                {% else %}
+                                <span style="color: var(--text-muted); opacity: 0.5;">⭕</span>
+                                {% endif %}
+                                <span {% if lesson.id not in completed_lesson_ids %}style="opacity: 0.7;"{% endif %}>
+                                    {{ lesson.order }}. {{ lesson.title }}
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: var(--space-md);">
+                                {% if lesson.requires_lab_completion %}
+                                <span style="font-size: 0.85rem;" title="Includes lab">🧪</span>
+                                {% endif %}
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">
+                                    {{ lesson.estimated_duration }} min
+                                </span>
+                                <span style="color: var(--accent-cyan); font-size: 0.85rem;">
+                                    +{{ lesson.xp_reward }} XP
+                                </span>
+                            </div>
+                        </a>
                     </li>
                     {% endfor %}
                 </ul>

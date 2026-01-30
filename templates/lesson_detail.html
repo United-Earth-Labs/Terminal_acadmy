@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} - {{ course.title }} - Terminal Academy{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lesson-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .lesson-content-area {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: var(--space-xl);
+        margin-top: var(--space-lg);
+    }
+    
+    .lesson-main {
+        min-width: 0; 
+    }
+    
+    .lesson-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .lesson-content {
+        line-height: 1.8;
+    }
+    
+    .lesson-content h2 {
+        margin-top: var(--space-xl);
+        margin-bottom: var(--space-md);
+    }
+    
+    .lesson-content h3 {
+        margin-top: var(--space-lg);
+        margin-bottom: var(--space-sm);
+    }
+    
+    .lesson-content code {
+        background: var(--bg-tertiary);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .lesson-content pre {
+        background: var(--bg-tertiary);
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+    }
+    
+    @media (max-width: 1024px) {
+        .lesson-content-area {
+            grid-template-columns: 1fr;
+        }
+        
+        .lesson-sidebar {
+            order: -1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-lg) 0;">
+    <div class="lesson-container container">
+        <!-- Breadcrumb Navigation -->
+        <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: var(--space-md);">
+            <a href="/courses/" style="color: var(--text-muted);">Courses</a> 
+            / 
+            <a href="/courses/{{ course.slug }}/" style="color: var(--text-muted);">{{ course.title }}</a>
+            /
+            <span>{{ lesson.title }}</span>
+        </div>
+
+        <!-- Lesson Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg);">
+            <div>
+                <h1 style="margin-bottom: var(--space-sm);">{{ lesson.title }}</h1>
+                <p style="color: var(--text-secondary); font-size: 1.1rem;">{{ module.title }}</p>
+            </div>
+            <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                {% if is_completed %}
+                <span style="color: var(--accent-green);">✅ Completed</span>
+                {% endif %}
+                <span style="color: var(--accent-cyan);">+{{ lesson.xp_reward }} XP</span>
+            </div>
+        </div>
+
+        <div class="lesson-content-area">
+            <!-- Main Content -->
+            <div class="lesson-main">
+                <!-- Lesson Content -->
+                <div class="card">
+                    <div class="lesson-content">
+                        {{ lesson.content|safe|linebreaks }}
+                    </div>
+                </div>
+
+                <!-- Lab Section (if applicable) -->
+                {% if lesson_lab %}
+                <div class="card" style="margin-top: var(--space-lg); border: 2px solid var(--accent-purple, #9333ea);">
+                    <h2 style="margin-bottom: var(--space-md);">🧪 Hands-On Lab</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
+                        {{ lesson_lab.description }}
+                    </p>
+                    <a href="/labs/{{ lesson_lab.id }}/" class="btn btn-primary" style="display: inline-flex;">
+                        Launch Lab Terminal →
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Navigation Buttons -->
+                <div style="display: flex; justify-content: space-between; margin-top: var(--space-xl);">
+                    {% if previous_lesson %}
+                    <a href="/courses/{{ course.slug }}/lessons/{{ previous_lesson.slug }}/" class="btn btn-secondary">
+                        ← Previous: {{ previous_lesson.title }}
+                    </a>
+                    {% else %}
+                    <div></div>
+                    {% endif %}
+
+                    {% if next_lesson %}
+                    <a href="/courses/{{ course.slug }}/lessons/{{ next_lesson.slug }}/" class="btn btn-primary">
+                        Next: {{ next_lesson.title }} →
+                    </a>
+                    {% else %}
+                    <a href="/courses/{{ course.slug }}/" class="btn btn-primary">
+                        Back to Course
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lesson-sidebar">
+                <!-- Progress Card -->
+                <div class="card">
+                    <h3 style="margin-bottom: var(--space-md);">Lesson Progress</h3>
+                    <div style="margin-bottom: var(--space-md);">
+                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: var(--space-sm);">
+                            Estimated time: {{ lesson.estimated_duration }} minutes
+                        </div>
+                    </div>
+
+                    {% if not is_completed %}
+                    <button id="complete-lesson-btn" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Mark as Complete
+                    </button>
+                    {% else %}
+                    <div style="padding: var(--space-md); background: rgba(0,255,136,0.1); border-radius: var(--radius-sm); text-align: center; color: var(--accent-green);">
+                        ✅ Lesson Completed!
+                    </div>
+                    {% endif %}
+
+                    {% if lesson.requires_lab_completion and lesson_lab %}
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: var(--space-sm);">
+                        ⚠️ Lab completion required
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Resources (if any) -->
+                {% if lesson.resources.all %}
+                <div class="card">
+                    <h3 style="margin-bottom: var(--space-md);">📚 Resources</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        {% for resource in lesson.resources.all %}
+                        <li style="margin-bottom: var(--space-sm);">
+                            <a href="{{ resource.url }}" target="_blank" style="color: var(--accent-cyan);">
+                                {{ resource.title }}
+                            </a>
+                            {% if resource.description %}
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+                                {{ resource.description }}
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Module Progress -->
+                <div class="card">
+                    <h3 style="margin-bottom: var(--space-md);">{{ module.title }}</h3>
+                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: var(--space-md);">
+                        Lesson {{ lesson.order }} of {{ total_lessons_in_module }}
+                    </div>
+                    <div class="progress-bar" style="margin-bottom: var(--space-sm);">
+                        <div class="progress-fill" style="width: {{ module_progress_percentage }}%;"></div>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        {{ completed_lessons_in_module }}/{{ total_lessons_in_module }} lessons completed
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const courseSlug = '{{ course.slug }}';
+    const lessonSlug = '{{ lesson.slug }}';
+    const requiresLabCompletion = {{ lesson.requires_lab_completion|lower }};
+    const labId = {{ lesson_lab.id|default:'null' }};
+
+    // Complete lesson functionality
+    const completeBtn = document.getElementById('complete-lesson-btn');
+    if (completeBtn) {
+        completeBtn.addEventListener('click', async () => {
+            // Check if lab completion is required
+            if (requiresLabCompletion && labId) {
+                const labCompleted = await checkLabCompletion(labId);
+               if (!labCompleted) {
+                    alert('⚠️ You must complete the lab before marking this lesson as complete.');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(`/api/v1/courses/${courseSlug}/lessons/${lessonSlug}/complete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    completeBtn.textContent = '✅ Completed!';
+                    completeBtn.disabled = true;
+                    completeBtn.style.background = 'var(--accent-green)';
+
+                    if (data.xp_earned > 0) {
+                        window.location.reload();  // Reload to show updated progress
+                    }
+                } else {
+                    alert(data.error || 'Failed to complete lesson');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+    }
+
+    async function checkLabCompletion(labId) {
+        try {
+            const response = await fetch(`/api/v1/labs/${labId}/`, {
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            return data.attempt?.completed || false;
+        } catch (err) {
+            console.error('Error checking lab completion:', err);
+            return false;
+        }
+    }
+
+    function getCsrfToken() {
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) return metaTag.getAttribute('content');
+
+        const inputField = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (inputField) return inputField.value;
+
+        return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+    }
+</script>
+{% endblock %}

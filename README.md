@@ -6,7 +6,7 @@ A production-ready platform for teaching ethical hacking and cybersecurity in a 
 
 ## ⚡ Quick Start
 
-### Development
+### Development (SQLite - Default)
 ```bash
 # Clone and setup
 git clone <repo-url>
@@ -18,19 +18,48 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
 # Install dependencies
-pip install -r requirements/development.txt
+pip install -r requirements/base.txt
 
 # Configure environment
 cp .env.example .env
 
 # Run migrations
 python manage.py migrate
+python manage.py createcachetable
 
 # Create admin user
 python manage.py createsuperuser
 
 # Start server
 python manage.py runserver
+```
+
+### Production with PostgreSQL
+
+**📘 See detailed setup guide**: [docs/POSTGRESQL_SETUP_GUIDE.md](docs/POSTGRESQL_SETUP_GUIDE.md)  
+**🚀 Quick reference**: [docs/POSTGRESQL_QUICKSTART.md](docs/POSTGRESQL_QUICKSTART.md)
+
+```bash
+# 1. Install PostgreSQL (see docs/POSTGRESQL_SETUP_GUIDE.md)
+
+# 2. Create database (automated script)
+python scripts/setup_postgres.py
+
+# 3. Configure .env
+DATABASE_URL=postgresql://terminal_user:password@localhost:5432/terminal_academy
+DJANGO_SETTINGS_MODULE=core.settings.production
+DEBUG=False
+SECRET_KEY=your-secret-key
+ALLOWED_HOSTS=yourdomain.com
+
+# 4. Deploy
+python manage.py migrate
+python manage.py createcachetable
+python manage.py collectstatic --noinput
+python manage.py createsuperuser
+
+# 5. Run with Gunicorn
+gunicorn core.wsgi:application --bind 0.0.0.0:8000
 ```
 
 ### Production (Docker)
@@ -62,6 +91,7 @@ terminal_academy/
 ├── security/          # Audit logs, rate limiting, IP blocking
 ├── templates/         # Django HTML templates
 ├── static/            # CSS, JavaScript
+├── docs/              # Documentation (PostgreSQL setup, etc.)
 ├── nginx/             # Production reverse proxy
 ├── scripts/           # Deployment and maintenance scripts
 ├── Dockerfile         # Multi-stage production build
@@ -79,7 +109,15 @@ terminal_academy/
 | **JWT + Session Auth** | Secure authentication with OTP support |
 | **XP & Leveling** | Gamified learning with achievements |
 | **Audit Logging** | Complete security trail |
-| **Rate Limiting** | Redis-based protection |
+| **Rate Limiting** | Database-based protection (PythonAnywhere compatible) |
+
+## 🗄️ Database Options
+
+- **Development**: SQLite (default, zero config)
+- **Production**: PostgreSQL (recommended, scalable)
+- **Switch environments**: Use `DJANGO_SETTINGS_MODULE` environment variable
+
+See [docs/POSTGRESQL_SETUP_GUIDE.md](docs/POSTGRESQL_SETUP_GUIDE.md) for complete setup instructions.
 
 ## 🛡️ Security
 
@@ -106,11 +144,15 @@ terminal_academy/
 ## 🧪 Tech Stack
 
 - **Backend**: Python 3.11+, Django 5+, Django REST Framework
-- **Database**: PostgreSQL 15
-- **Cache/Queue**: Redis 7
-- **Task Queue**: Celery
-- **Web Server**: Gunicorn + Nginx
+- **Database**: PostgreSQL (production) / SQLite (development)
+- **Cache**: Database-backed (PythonAnywhere compatible)
+- **Web Server**: Gunicorn + Nginx + WhiteNoise
 - **Container**: Docker + Docker Compose
+
+## 📖 Documentation
+
+- [PostgreSQL Setup Guide](docs/POSTGRESQL_SETUP_GUIDE.md) - Complete production database setup
+- [PostgreSQL Quick Start](docs/POSTGRESQL_QUICKSTART.md) - 5-minute team reference
 
 ## 📝 License
 

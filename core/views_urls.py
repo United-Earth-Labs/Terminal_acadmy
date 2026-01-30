@@ -16,6 +16,7 @@ urlpatterns = [
     # Additional pages
     path('courses/', views.courses_view, name='courses'),
     path('courses/<slug:slug>/', views.course_detail_view, name='course_detail'),
+    path('courses/<slug:course_slug>/lessons/<slug:lesson_slug>/', views.lesson_detail_view, name='lesson_detail'),
     path('labs/', views.labs_view, name='labs'),
     path('labs/<int:lab_id>/', views.lab_detail_view, name='lab_detail'),
     path('achievements/', views.achievements_view, name='achievements'),

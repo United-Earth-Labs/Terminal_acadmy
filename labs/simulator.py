@@ -36,7 +36,9 @@ class EnvironmentSimulator:
             environment_config: Configuration dict from SimulatedEnvironment model
         """
         self.config = environment_config or {}
-        self.filesystem = self.config.get('filesystem', self._default_filesystem())
+        # Use default filesystem if config doesn't have one or has an empty one
+        config_filesystem = self.config.get('filesystem')
+        self.filesystem = config_filesystem if config_filesystem else self._default_filesystem()
         self.network = self.config.get('network_config', {})
         self.current_dir = '/home/student'
         self.user = self.config.get('simulated_user', 'student')
@@ -133,7 +135,11 @@ class EnvironmentSimulator:
             '/home': {'type': 'dir', 'children': ['student']},
             '/home/student': {
                 'type': 'dir',
-                'children': ['notes.txt', 'scan_results', 'tools', '.secret.txt', '.bashrc']
+                'children': ['welcome.txt', 'notes.txt', 'scan_results', 'tools', '.secret.txt', '.bashrc']
+            },
+            '/home/student/welcome.txt': {
+                'type': 'file',
+                'content': 'Welcome to Terminal Academy!\n\nThis is your first Linux lab environment.\nUse basic commands to explore and complete the objectives.\n\nGood luck!\n'
             },
             '/home/student/notes.txt': {
                 'type': 'file',
@@ -183,11 +189,14 @@ class EnvironmentSimulator:
         if path == '..':
             parts = self.current_dir.rsplit('/', 1)
             return parts[0] if parts[0] else '/'
-        return f"{self.current_dir}/{path}".replace('//', '/')
+        # Handle relative paths
+        resolved = f"{self.current_dir}/{path}".replace('//', '/')
+        return resolved
     
     def _get_node(self, path: str) -> Optional[Dict]:
         """Get a filesystem node by path."""
-        return self.filesystem.get(self._resolve_path(path))
+        resolved = self._resolve_path(path)
+        return self.filesystem.get(resolved)
     
     # Command Handlers
     

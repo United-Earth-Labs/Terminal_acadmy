@@ -149,7 +149,7 @@
                     </div>
                     <div class="terminal-body" id="terminal-output">
                         <div class="terminal-output" id="output-container">
-                            <span style="color: var(--accent-cyan);">ðŸŽ¯ Challenge Mode: Try to solve it first!</span>
+                            <span style="color: var(--accent-cyan);">🎯 Challenge Mode: Try to solve it first!</span>
                             Type commands below. Use hints if you're stuck.
                             Type 'help' for available commands.
 
@@ -185,7 +185,7 @@
 
                     <!-- Success message (hidden by default) -->
                     <div id="success-message" class="success-message" style="display: none;">
-                        <h3>ðŸŽ‰ Congratulations!</h3>
+                        <h3>🎉 Congratulations!</h3>
                         <p>You completed the lab!</p>
                         <p id="xp-earned" style="font-size: 1.2em; color: var(--accent-green);"></p>
                     </div>
@@ -193,20 +193,20 @@
 
                 <!-- Progressive Hints -->
                 <div class="card">
-                    <h3 style="margin-bottom: var(--space-md);">ðŸ’¡ Need Help?</h3>
+                    <h3 style="margin-bottom: var(--space-md);">💡 Need Help?</h3>
                     <div id="hints-container">
                         <p style="color: var(--text-muted);">No hints revealed yet. Try solving it first!</p>
                     </div>
                     <button class="btn btn-secondary" id="hint-btn"
                         style="width: 100%; justify-content: center; margin-top: var(--space-md);">
-                        ðŸ”“ Reveal Hint (<span id="hints-remaining">{{ lab.hints|length }}</span> left)
+                        🔓 Reveal Hint (<span id="hints-remaining">{{ lab.hints|length }}</span> left)
                     </button>
                 </div>
 
                 <!-- Flag Submission (for CTF-style challenges) -->
                 {% if lab.flags %}
                 <div class="card" style="border: 2px solid var(--accent-purple, #9333ea);">
-                    <h3 style="margin-bottom: var(--space-md);">ðŸš© Submit Flag</h3>
+                    <h3 style="margin-bottom: var(--space-md);">🚩 Submit Flag</h3>
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: var(--space-md);">
                         Found the secret flag? Enter it below:
                     </p>
@@ -224,20 +224,20 @@
                 <!-- Show Solution (Last Resort) -->
                 {% if lab.solution_guide %}
                 <div class="card" style="background: rgba(255, 100, 100, 0.05);">
-                    <h3 style="margin-bottom: var(--space-md);">ðŸ†˜ Completely Stuck?</h3>
+                    <h3 style="margin-bottom: var(--space-md);">🆘 Completely Stuck?</h3>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">
                         If you've tried everything, you can view the step-by-step solution.
                     </p>
                     <button class="btn" id="solution-btn"
                         style="width: 100%; justify-content: center; margin-top: var(--space-md); background: var(--accent-red); color: white;">
-                        ðŸ“š Show Solution
+                        📚 Show Solution
                     </button>
                     <p class="xp-warning">
-                        âš ï¸ Viewing solution reduces XP by {{ lab.xp_penalty_for_solution }}%
+                        ⚠️ Viewing solution reduces XP by {{ lab.xp_penalty_for_solution }}%
                     </p>
 
                     <div id="solution-panel" class="solution-panel" style="display: none;">
-                        <h4>ðŸ“š Step-by-Step Teaching</h4>
+                        <h4>📚 Step-by-Step Teaching</h4>
                         <div id="solution-content">
                             {{ lab.solution_guide|linebreaks }}
                         </div>
@@ -247,7 +247,7 @@
 
                 <!-- Reset Button -->
                 <button class="btn btn-secondary" id="reset-btn" style="width: 100%; justify-content: center;">
-                    ðŸ”„ Reset Lab
+                    🔄 Reset Lab
                 </button>
             </div>
         </div>
@@ -497,7 +497,7 @@
 
                 const hintEl = document.createElement('div');
                 hintEl.className = 'hint-item';
-                hintEl.innerHTML = `<strong>ðŸ’¡ Hint ${data.hint_number}:</strong><br>${escapeHtml(data.hint_text)}`;
+                hintEl.innerHTML = `<strong>💡 Hint ${data.hint_number}:</strong><br>${escapeHtml(data.hint_text)}`;
                 hintsContainer.appendChild(hintEl);
 
                 hintsRemaining.textContent = data.hints_remaining;
@@ -533,7 +533,7 @@
             if (confirmed) {
                 solutionViewed = true;
                 document.getElementById('solution-panel').style.display = 'block';
-                solutionBtn.textContent = 'ðŸ“š Solution (Viewed)';
+                solutionBtn.textContent = '📚 Solution (Viewed)';
                 updateXPDisplay();
 
                 // Notify server
@@ -614,7 +614,7 @@
                 if (data.correct) {
                     flagResult.innerHTML = `
                         <div style="color: var(--accent-green); padding: var(--space-md); background: rgba(0,255,136,0.1); border-radius: var(--radius-sm);">
-                            ðŸŽ‰ <strong>Correct!</strong> ${data.message}
+                            🎉 <strong>Correct!</strong> ${data.message}
                             ${data.xp_awarded ? `<br>+${data.xp_awarded} XP earned!` : ''}
                         </div>
                     `;
@@ -627,7 +627,7 @@
                 } else {
                     flagResult.innerHTML = `
                         <div style="color: var(--accent-red); padding: var(--space-md); background: rgba(255,100,100,0.1); border-radius: var(--radius-sm);">
-                            âŒ <strong>Incorrect.</strong> ${data.message}
+                            ❌ <strong>Incorrect.</strong> ${data.message}
                         </div>
                     `;
                 }
@@ -635,7 +635,7 @@
                 flagResult.style.display = 'block';
                 flagResult.innerHTML = `
                     <div style="color: var(--accent-red);">
-                        âš ï¸ Error submitting flag: ${err.message}
+                        ⚠️ Error submitting flag: ${err.message}
                     </div>
                 `;
             }
