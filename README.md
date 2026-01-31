@@ -1,8 +1,8 @@
 # Terminal Academy 🖥️
 
-> **Learn Ethical Hacking Through Interactive Terminal Labs**
+> **Learn tech like coding and Ethical Hacking Through Interactive Terminal Labs**
 
-A production-ready platform for teaching ethical hacking and cybersecurity in a safe, simulated environment. All commands execute in a sandboxed simulator - no real systems are ever accessed.
+A production-ready platform for teaching programming and ethical hacking and cybersecurity in a safe, simulated environment. All commands execute in a sandboxed simulator - no real systems are ever accessed.
 
 ## ⚡ Quick Start
 
