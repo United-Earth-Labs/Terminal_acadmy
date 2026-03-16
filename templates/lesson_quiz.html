@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} Quiz - Terminal Acadmay{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quiz-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+        gap: var(--space-xl);
+        align-items: start;
+    }
+
+    .quiz-sidebar {
+        display: grid;
+        gap: var(--space-lg);
+        position: sticky;
+        top: 96px;
+    }
+
+    .question-card {
+        border: 1px solid var(--bg-tertiary);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .question-card.correct {
+        border-color: rgba(0, 255, 136, 0.35);
+    }
+
+    .question-card.incorrect {
+        border-color: rgba(255, 71, 87, 0.35);
+    }
+
+    .answer-option {
+        display: flex;
+        gap: var(--space-sm);
+        padding: var(--space-sm) 0;
+        color: var(--text-secondary);
+    }
+
+    .answer-state {
+        margin-top: var(--space-md);
+        padding-top: var(--space-md);
+        border-top: 1px solid var(--bg-tertiary);
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 960px) {
+        .quiz-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .quiz-sidebar {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0 var(--space-2xl);">
+    <div class="container">
+        <a href="{% url 'lesson_detail' course.slug lesson.slug %}" style="color: var(--text-muted);">Back to lesson</a>
+
+        <div class="card" style="margin-top: var(--space-lg); background: linear-gradient(135deg, rgba(0, 212, 255, 0.12), rgba(10, 14, 20, 0.95)); border-color: rgba(0, 212, 255, 0.25);">
+            <div style="display: flex; justify-content: space-between; gap: var(--space-lg); flex-wrap: wrap; align-items: end;">
+                <div style="max-width: 760px;">
+                    <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                    <h1 style="margin-top: var(--space-md); margin-bottom: var(--space-sm);">{{ quiz.title }}</h1>
+                    <p style="margin-bottom: 0;">Post-lesson assessment for {{ lesson.title }}. Review carefully before submitting.</p>
+                </div>
+                <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap;">
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-green); font-size: 1.3rem;">{{ quiz.passing_score }}%</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Passing score</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 1.3rem;">{{ attempts_remaining }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Attempts left</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.3rem;">{{ minimum_quiz_seconds }}s</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Minimum review time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quiz-shell" style="margin-top: var(--space-xl);">
+            <div>
+                {% if attempts_remaining > 0 and session_info %}
+                <form method="post" id="quiz-form" style="display: grid; gap: var(--space-lg);">
+                    {% csrf_token %}
+                    <input type="hidden" name="session_token" value="{{ session_info.session_token }}">
+                    {% for question in questions %}
+                    <div class="question-card {% if latest_result %}{% if question.was_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
+                        <div style="display: flex; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap;">
+                            <h3 style="margin-bottom: var(--space-sm);">Question {{ forloop.counter }}</h3>
+                            <span style="color: var(--text-muted);">{{ question.points }} point{{ question.points|pluralize }}</span>
+                        </div>
+                        <p style="margin-bottom: var(--space-sm); color: var(--text-primary);">{{ question.question_text }}</p>
+                        <div>
+                            {% for answer in question.answers.all %}
+                            <label class="answer-option">
+                                <input
+                                    type="{% if question.question_type == 'multiple' %}checkbox{% else %}radio{% endif %}"
+                                    name="question_{{ question.id }}"
+                                    value="{{ answer.id }}"
+                                    {% if answer.id in question.selected_answer_ids %}checked{% endif %}>
+                                <span>
+                                    {{ answer.answer_text }}
+                                    {% if latest_result and answer.id in question.correct_answer_ids %}
+                                    <span style="color: var(--accent-green);">(correct)</span>
+                                    {% endif %}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        {% if latest_result %}
+                        <div class="answer-state">
+                            <strong style="color: {% if question.was_correct %}var(--accent-green){% else %}var(--accent-red){% endif %};">
+                                {% if question.was_correct %}Correct{% else %}Needs review{% endif %}
+                            </strong>
+                            {% if question.explanation %}
+                            <p style="margin: var(--space-sm) 0 0;">{{ question.explanation }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="card">
+                        <button type="submit" class="btn btn-primary" id="quiz-submit">Submit quiz</button>
+                        <p id="quiz-timer-note" style="margin-top: var(--space-md); margin-bottom: 0; color: var(--accent-orange);">
+                            Review timer active. Submission unlocks in {{ minimum_quiz_seconds }} seconds.
+                        </p>
+                    </div>
+                </form>
+                {% else %}
+                <div class="card">
+                    <h2>No attempts remaining</h2>
+                    <p>You have reached the current attempt limit for this quiz. Review the lesson content and update the quiz settings if you want more retries.</p>
+                    <a href="{% url 'lesson_detail' course.slug lesson.slug %}" class="btn btn-secondary">Return to lesson</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <aside class="quiz-sidebar">
+                <div class="card">
+                    <h3>Assessment rules</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md); color: var(--text-secondary);">
+                        <div>Complete all questions in one session.</div>
+                        <div>Wait at least {{ minimum_quiz_seconds }} seconds before submitting.</div>
+                        <div>Passing the quiz unlocks the lesson summary and progress credit.</div>
+                    </div>
+                </div>
+
+                {% if latest_result %}
+                <div class="card">
+                    <h3>Latest result</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <div class="lesson-nav-item">Score: {{ latest_result.attempt.score|floatformat:0 }}%</div>
+                        <div class="lesson-nav-item">Points: {{ latest_result.attempt.points_earned }}/{{ latest_result.attempt.total_points }}</div>
+                        <div class="lesson-nav-item">Status: {% if latest_result.attempt.passed %}<span style="color: var(--accent-green);">Passed</span>{% else %}<span style="color: var(--accent-orange);">Retry needed</span>{% endif %}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card">
+                    <h3>Lesson status</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <div class="lesson-nav-item">Lab complete: {% if lab_completed %}<span style="color: var(--accent-green);">Yes</span>{% else %}No{% endif %}</div>
+                        <div class="lesson-nav-item">Course progress: {{ course_progress.percentage }}%</div>
+                        <div class="lesson-nav-item">Attempts used: {{ attempts_count }}</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const submitButton = document.getElementById('quiz-submit');
+    const timerNote = document.getElementById('quiz-timer-note');
+    const minSeconds = {{ minimum_quiz_seconds }};
+    const startedAt = Date.now();
+
+    if (submitButton && timerNote) {
+        submitButton.disabled = true;
+
+        const intervalId = window.setInterval(() => {
+            const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+            const remaining = Math.max(0, minSeconds - elapsedSeconds);
+
+            if (remaining === 0) {
+                submitButton.disabled = false;
+                timerNote.textContent = 'Submission unlocked. You can send your answers now.';
+                window.clearInterval(intervalId);
+                return;
+            }
+
+            timerNote.textContent = `Review timer active. Submission unlocks in ${remaining} seconds.`;
+        }, 1000);
+    }
+</script>
+{% endblock %}

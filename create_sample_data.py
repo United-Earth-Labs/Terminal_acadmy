@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 django.setup()
 
 from django.utils.text import slugify
-from courses.models import Category, Course, Module, Lesson
+from courses.models import Category, Course, Module, Lesson, Quiz, QuizQuestion, QuizAnswer
 from labs.models import Lab, SimulatedEnvironment
 from progress.models import Achievement
 
@@ -110,6 +110,71 @@ web_lesson, _ = Lesson.objects.get_or_create(
 )
 
 print('✓ Web Security course created')
+
+# Create quizzes for the sample lessons
+linux_quiz, _ = Quiz.objects.get_or_create(
+    lesson=linux_lesson,
+    defaults={
+        'title': 'Linux File Navigation Checkpoint',
+        'passing_score': 70,
+        'max_attempts': 3,
+        'time_limit': 5,
+    }
+)
+
+linux_question, _ = QuizQuestion.objects.get_or_create(
+    quiz=linux_quiz,
+    order=1,
+    defaults={
+        'question_text': 'Which command prints the current working directory?',
+        'question_type': 'single',
+        'explanation': 'pwd stands for print working directory.',
+        'points': 1,
+    }
+)
+QuizAnswer.objects.get_or_create(question=linux_question, order=1, defaults={'answer_text': 'pwd', 'is_correct': True})
+QuizAnswer.objects.get_or_create(question=linux_question, order=2, defaults={'answer_text': 'cd', 'is_correct': False})
+QuizAnswer.objects.get_or_create(question=linux_question, order=3, defaults={'answer_text': 'ls', 'is_correct': False})
+
+web_quiz, _ = Quiz.objects.get_or_create(
+    lesson=web_lesson,
+    defaults={
+        'title': 'Port Scanning Knowledge Check',
+        'passing_score': 70,
+        'max_attempts': 3,
+        'time_limit': 5,
+    }
+)
+
+web_question_one, _ = QuizQuestion.objects.get_or_create(
+    quiz=web_quiz,
+    order=1,
+    defaults={
+        'question_text': 'Which tool is introduced in the lesson for port scanning?',
+        'question_type': 'single',
+        'explanation': 'nmap is the network scanner used in the lesson and the lab.',
+        'points': 1,
+    }
+)
+QuizAnswer.objects.get_or_create(question=web_question_one, order=1, defaults={'answer_text': 'nmap', 'is_correct': True})
+QuizAnswer.objects.get_or_create(question=web_question_one, order=2, defaults={'answer_text': 'grep', 'is_correct': False})
+QuizAnswer.objects.get_or_create(question=web_question_one, order=3, defaults={'answer_text': 'curl', 'is_correct': False})
+
+web_question_two, _ = QuizQuestion.objects.get_or_create(
+    quiz=web_quiz,
+    order=2,
+    defaults={
+        'question_text': 'Which port usually indicates MySQL in the sample environment?',
+        'question_type': 'single',
+        'explanation': 'The lab uses port 3306 for the MySQL service.',
+        'points': 1,
+    }
+)
+QuizAnswer.objects.get_or_create(question=web_question_two, order=1, defaults={'answer_text': '80', 'is_correct': False})
+QuizAnswer.objects.get_or_create(question=web_question_two, order=2, defaults={'answer_text': '443', 'is_correct': False})
+QuizAnswer.objects.get_or_create(question=web_question_two, order=3, defaults={'answer_text': '3306', 'is_correct': True})
+
+print('✓ Sample quizzes created')
 
 # Create simulated environment
 network_env, _ = SimulatedEnvironment.objects.get_or_create(

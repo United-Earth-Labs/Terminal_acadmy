@@ -1,166 +1,181 @@
 {% extends 'base.html' %}
 
-{% block title %}Terminal Academy - Learn Ethical Hacking{% endblock %}
+{% block title %}Terminal Acadmay - Learn Cybersecurity Through Guided Practice{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-surface {
+        position: relative;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at top left, rgba(0, 255, 136, 0.18), transparent 28%),
+            radial-gradient(circle at right center, rgba(0, 212, 255, 0.16), transparent 24%),
+            linear-gradient(180deg, #101726 0%, #0a0e14 100%);
+    }
+
+    .hero-surface::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.75), transparent);
+        pointer-events: none;
+    }
+
+    .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+        gap: var(--space-2xl);
+        align-items: center;
+    }
+
+    .signal-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: var(--radius-xl);
+        padding: var(--space-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    @media (max-width: 960px) {
+        .hero-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section
-    style="padding: var(--space-2xl) 0; background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);">
-    <div class="container" style="text-align: center;">
-        <h1 style="font-size: 3rem; margin-bottom: var(--space-lg);">
-            Learn <span style="color: var(--accent-green);">Ethical Hacking</span><br>
-            Through Interactive Labs
-        </h1>
-        <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto var(--space-xl);">
-            Master cybersecurity with hands-on terminal labs, guided learning paths,
-            and CTF-style challenges. 100% safe and legal.
-        </p>
+<section class="hero-surface" style="padding: var(--space-2xl) 0 4rem;">
+    <div class="container hero-grid">
+        <div>
+            <span class="badge badge-intermediate" style="background: rgba(0, 212, 255, 0.14); color: var(--accent-cyan);">Guided web academy</span>
+            <h1 style="font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.05; margin: var(--space-lg) 0 var(--space-md);">
+                Build terminal confidence with lessons, labs, quizzes, and summaries in one flow.
+            </h1>
+            <p style="font-size: 1.1rem; max-width: 62ch; margin-bottom: var(--space-xl); color: var(--text-secondary);">
+                Terminal Acadmay combines readable lessons, safe lab simulations, post-lesson quizzes, and progress tracking so learners move through cybersecurity training like a real academy, not a loose collection of pages.
+            </p>
 
-        <div class="flex gap-md items-center" style="justify-content: center;">
-            <a href="/register/" class="btn btn-primary" style="padding: var(--space-md) var(--space-xl);">
-                Start Learning Free
-            </a>
-            <a href="#demo" class="btn btn-outline">
-                Watch Demo
-            </a>
+            <div class="flex gap-md items-center" style="flex-wrap: wrap;">
+                <a href="{% url 'register' %}" class="btn btn-primary" style="padding: var(--space-md) var(--space-xl);">Start learning</a>
+                <a href="#programs" class="btn btn-outline">Explore programs</a>
+            </div>
+
+            <div class="stats-grid" style="margin-top: var(--space-2xl);">
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-value">{{ platform_stats.courses }}</div>
+                    <div class="stat-label">Programs available</div>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-value">{{ platform_stats.lessons }}</div>
+                    <div class="stat-label">Lesson pages</div>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-value">{{ platform_stats.labs }}</div>
+                    <div class="stat-label">Hands-on labs</div>
+                </div>
+            </div>
         </div>
 
-        <!-- Terminal Demo -->
-        <div class="terminal" style="max-width: 700px; margin: var(--space-2xl) auto 0; text-align: left;">
-            <div class="terminal-header">
-                <span class="terminal-dot red"></span>
-                <span class="terminal-dot yellow"></span>
-                <span class="terminal-dot green"></span>
-                <span class="terminal-title">academy-lab ~ student</span>
-            </div>
-            <div class="terminal-body" style="height: auto; padding: var(--space-lg);">
-                <div class="terminal-output">
-                    <span class="terminal-prompt">student@academy:~$</span> <span class="terminal-command">nmap
-                        target</span>
-                    Starting Nmap 7.94 ( https://nmap.org )
-                    Nmap scan report for target (192.168.1.100)
+        <div class="signal-card">
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span class="terminal-dot red"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot green"></span>
+                    <span class="terminal-title">lesson -> lab -> quiz -> summary</span>
+                </div>
+                <div class="terminal-body" style="height: auto; min-height: 0;">
+                    <div class="terminal-output">
+<span class="terminal-prompt">student@acadmay:~$</span> open lesson port-scanning
+Lesson loaded: Port Scanning
+Takeaways: understand open ports, identify exposed services
 
-                    PORT STATE SERVICE VERSION
-                    22/tcp open ssh OpenSSH 8.9
-                    80/tcp open http Apache 2.4
-                    443/tcp open https
+<span class="terminal-prompt">student@acadmay:~$</span> launch lab network-recon
+Objective 1 complete: scan the target for open ports
+Objective 2 complete: identify MySQL on port 3306
 
-                    Nmap done: 1 IP address (1 host up)
-
-                    <span class="terminal-prompt">student@academy:~$</span> <span class="cursor"></span>
+<span class="terminal-prompt">student@acadmay:~$</span> submit quiz
+Quiz passed: 80%
+Summary unlocked. Course progress updated.
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
 <section id="features" style="padding: var(--space-2xl) 0;">
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: var(--space-2xl);">
-            Why Terminal Academy?
-        </h2>
+        <div style="text-align: center; max-width: 760px; margin: 0 auto var(--space-2xl);">
+            <h2>What makes it feel like an academy now</h2>
+            <p>The learning experience is structured around progression, assessment, and guided continuation instead of isolated pages.</p>
+        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: var(--space-md);">🖥️</div>
-                <h4>Interactive Labs</h4>
-                <p style="font-size: 0.9rem;">Learn by doing with real terminal commands in safe, simulated
-                    environments.</p>
+                <h4>Lesson-first structure</h4>
+                <p>Students start from instructional pages, not raw lab interfaces. Each lesson now acts as the anchor for the whole flow.</p>
             </div>
-
             <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: var(--space-md);">📈</div>
-                <h4>Adaptive Learning</h4>
-                <p style="font-size: 0.9rem;">Courses adapt to your skill level. Start where you are, grow at your pace.
-                </p>
+                <h4>Post-lesson assessment</h4>
+                <p>Quizzes are presented as part of the learning path with progress tracking, minimum review timing, and results feedback.</p>
             </div>
-
             <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: var(--space-md);">🏆</div>
-                <h4>Gamified Progress</h4>
-                <p style="font-size: 0.9rem;">Earn XP, level up, unlock achievements, and compete on leaderboards.</p>
+                <h4>Completion summaries</h4>
+                <p>Every finished lesson can end with a summary page that reinforces takeaways and guides the learner to the next milestone.</p>
             </div>
-
             <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: var(--space-md);">🔒</div>
-                <h4>100% Legal & Safe</h4>
-                <p style="font-size: 0.9rem;">All labs are sandboxed simulations. No real systems. No legal risks.</p>
+                <h4>Progress-aware navigation</h4>
+                <p>Course pages, the dashboard, and lab redirects now point learners to the correct lesson sequence instead of dead ends.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Courses Preview -->
-<section id="courses" style="padding: var(--space-2xl) 0; background: var(--bg-secondary);">
+<section id="programs" style="padding: var(--space-2xl) 0; background: var(--bg-secondary);">
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: var(--space-sm);">
-            Learning Paths
-        </h2>
-        <p style="text-align: center; margin-bottom: var(--space-2xl);">
-            From beginner to expert, we've got you covered
-        </p>
+        <div style="display: flex; justify-content: space-between; gap: var(--space-lg); align-items: end; flex-wrap: wrap; margin-bottom: var(--space-2xl);">
+            <div>
+                <h2 style="margin-bottom: var(--space-sm);">Featured learning paths</h2>
+                <p style="margin-bottom: 0;">Published programs that learners can enter through the new guided flow.</p>
+            </div>
+            <a href="{% url 'courses' %}" class="btn btn-secondary">Open full catalog</a>
+        </div>
 
         <div class="course-grid">
-            <div class="course-card">
-                <div class="course-thumbnail">🐧</div>
+            {% for course in featured_courses %}
+            <a href="{% url 'course_detail' course.slug %}" class="course-card" style="text-decoration: none; color: inherit;">
+                <div class="course-thumbnail">{{ course.title|slice:':1'|upper }}</div>
                 <div class="course-content">
-                    <span class="badge badge-beginner">Beginner</span>
-                    <h3 class="course-title" style="margin-top: var(--space-sm);">Linux Fundamentals</h3>
-                    <p style="font-size: 0.9rem;">Master the command line and essential Linux skills.</p>
+                    <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                    <h3 class="course-title" style="margin-top: var(--space-sm);">{{ course.title }}</h3>
+                    <p>{{ course.short_description|default:course.description|truncatewords:20 }}</p>
                     <div class="course-meta">
-                        <span>12 Lessons</span>
-                        <span>4 Labs</span>
-                        <span>+200 XP</span>
+                        <span>{{ course.lesson_count }} lessons</span>
+                        <span>{{ course.lab_count }} labs</span>
+                        <span>+{{ course.xp_reward }} XP</span>
                     </div>
                 </div>
+            </a>
+            {% empty %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center;">
+                <p>No featured programs are published yet.</p>
             </div>
-
-            <div class="course-card">
-                <div class="course-thumbnail">🌐</div>
-                <div class="course-content">
-                    <span class="badge badge-intermediate">Intermediate</span>
-                    <h3 class="course-title" style="margin-top: var(--space-sm);">Web Security Basics</h3>
-                    <p style="font-size: 0.9rem;">Learn OWASP Top 10 vulnerabilities and how to test for them.</p>
-                    <div class="course-meta">
-                        <span>15 Lessons</span>
-                        <span>8 Labs</span>
-                        <span>+350 XP</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="course-card">
-                <div class="course-thumbnail">🔍</div>
-                <div class="course-content">
-                    <span class="badge badge-advanced">Advanced</span>
-                    <h3 class="course-title" style="margin-top: var(--space-sm);">Network Reconnaissance</h3>
-                    <p style="font-size: 0.9rem;">Master scanning, enumeration, and footprinting techniques.</p>
-                    <div class="course-meta">
-                        <span>10 Lessons</span>
-                        <span>6 Labs</span>
-                        <span>+500 XP</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="text-align: center; margin-top: var(--space-2xl);">
-            <a href="/register/" class="btn btn-primary">Start Your Journey</a>
+            {% endfor %}
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
 <section style="padding: var(--space-2xl) 0;">
-    <div class="container" style="text-align: center;">
-        <h2>Ready to Become an Ethical Hacker?</h2>
-        <p style="margin-bottom: var(--space-xl);">
-            Join thousands of students learning cybersecurity the right way.
-        </p>
-        <a href="/register/" class="btn btn-primary" style="padding: var(--space-md) var(--space-2xl);">
-            Create Free Account
-        </a>
+    <div class="container" style="text-align: center; max-width: 760px;">
+        <h2>Ready to build Terminal Acadmay into a complete learning brand?</h2>
+        <p style="margin-bottom: var(--space-xl);">Create an account, enter a program, and move through the full learning cycle from lesson to summary.</p>
+        <a href="{% url 'register' %}" class="btn btn-primary" style="padding: var(--space-md) var(--space-2xl);">Create account</a>
     </div>
 </section>
 {% endblock %}

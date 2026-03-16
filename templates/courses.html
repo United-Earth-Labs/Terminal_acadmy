@@ -1,31 +1,69 @@
 {% extends 'base.html' %}
 
-{% block title %}Courses - Terminal Academy{% endblock %}
+{% block title %}Programs - Terminal Acadmay{% endblock %}
 
 {% block content %}
-<section style="padding: var(--space-xl) 0;">
+<section style="padding: var(--space-xl) 0 var(--space-2xl);">
     <div class="container">
-        <h1>📚 Courses</h1>
-        <p style="color: var(--text-muted); margin-bottom: var(--space-xl);">
-            Learn ethical hacking from beginner to advanced
-        </p>
+        <div class="card" style="margin-bottom: var(--space-2xl); background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.06)); border-color: rgba(0, 212, 255, 0.18);">
+            <div style="display: flex; justify-content: space-between; gap: var(--space-lg); align-items: end; flex-wrap: wrap;">
+                <div style="max-width: 760px;">
+                    <span class="badge badge-intermediate">Academy catalog</span>
+                    <h1 style="margin-top: var(--space-md); margin-bottom: var(--space-sm);">Structured cybersecurity learning paths</h1>
+                    <p style="margin-bottom: 0;">Every program in Terminal Acadmay now starts with lessons, branches into guided labs, and closes with a quiz and summary flow.</p>
+                </div>
+                <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap;">
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-green); font-size: 1.5rem;">{{ courses|length }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Programs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
+        <div class="course-grid">
             {% for course in courses %}
-            <div class="card">
-                <span class="badge badge-{{ course.difficulty_level }}">{{ course.get_difficulty_level_display }}</span>
-                <h3 style="margin-top: var(--space-md);">{{ course.title }}</h3>
-                <p style="color: var(--text-muted);">{{ course.description|truncatewords:20 }}</p>
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md);">
-                    <span>{{ course.modules.count }} modules</span>
-                    <a href="#" class="btn btn-primary">Start Course</a>
+            <div class="course-card">
+                <div class="course-thumbnail">{{ course.title|slice:':1'|upper }}</div>
+                <div class="course-content">
+                    <div style="display: flex; justify-content: space-between; gap: var(--space-md); align-items: center; flex-wrap: wrap;">
+                        <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                        {% if course.user_progress %}
+                        <span style="color: var(--accent-green); font-size: 0.9rem;">{{ course.user_progress.percentage }}% done</span>
+                        {% endif %}
+                    </div>
+                    <h3 class="course-title" style="margin-top: var(--space-md);">{{ course.title }}</h3>
+                    <p>{{ course.short_description|default:course.description|truncatewords:22 }}</p>
+
+                    <div class="course-meta" style="margin: var(--space-md) 0; flex-wrap: wrap;">
+                        <span>{{ course.module_count }} modules</span>
+                        <span>{{ course.lesson_count }} lessons</span>
+                        <span>{{ course.lab_count }} labs</span>
+                        <span>+{{ course.xp_reward }} XP</span>
+                    </div>
+
+                    {% if course.user_progress %}
+                    <div class="progress-bar" style="margin-bottom: var(--space-md);">
+                        <div class="progress-fill" style="width: {{ course.user_progress.percentage }}%;"></div>
+                    </div>
+                    {% endif %}
+
+                    <div style="display: flex; justify-content: space-between; gap: var(--space-md); align-items: center; flex-wrap: wrap;">
+                        <div style="font-size: 0.9rem; color: var(--text-muted);">
+                            {% if course.next_lesson %}
+                            Next: {{ course.next_lesson.title }}
+                            {% else %}
+                            Ready to review
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'course_detail' course.slug %}" class="btn btn-primary">{% if course.user_progress %}Continue{% else %}Explore{% endif %}</a>
+                    </div>
                 </div>
             </div>
             {% empty %}
             <div class="card" style="grid-column: 1 / -1; text-align: center;">
-                <p>No courses available yet. Check back soon!</p>
-                <p style="color: var(--text-muted);">Courses will be added by administrators.</p>
+                <p>No programs are published yet.</p>
+                <p style="color: var(--text-muted);">Add courses in admin to populate the academy catalog.</p>
             </div>
             {% endfor %}
         </div>
