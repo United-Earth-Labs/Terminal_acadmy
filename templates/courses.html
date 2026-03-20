@@ -28,8 +28,8 @@
                 <div class="course-content">
                     <div style="display: flex; justify-content: space-between; gap: var(--space-md); align-items: center; flex-wrap: wrap;">
                         <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
-                        {% if course.user_progress %}
-                        <span style="color: var(--accent-green); font-size: 0.9rem;">{{ course.user_progress.percentage }}% done</span>
+                        {% if course.progress_info %}
+                        <span style="color: var(--accent-green); font-size: 0.9rem;">{{ course.progress_info.percentage }}% done</span>
                         {% endif %}
                     </div>
                     <h3 class="course-title" style="margin-top: var(--space-md);">{{ course.title }}</h3>
@@ -42,9 +42,9 @@
                         <span>+{{ course.xp_reward }} XP</span>
                     </div>
 
-                    {% if course.user_progress %}
+                    {% if course.progress_info %}
                     <div class="progress-bar" style="margin-bottom: var(--space-md);">
-                        <div class="progress-fill" style="width: {{ course.user_progress.percentage }}%;"></div>
+                        <div class="progress-fill" style="width: {{ course.progress_info.percentage }}%;"></div>
                     </div>
                     {% endif %}
 
@@ -56,7 +56,7 @@
                             Ready to review
                             {% endif %}
                         </div>
-                        <a href="{% url 'course_detail' course.slug %}" class="btn btn-primary">{% if course.user_progress %}Continue{% else %}Explore{% endif %}</a>
+                        <a href="{% url 'course_detail' course.slug %}" class="btn btn-primary">{% if course.progress_info %}Continue{% else %}Explore{% endif %}</a>
                     </div>
                 </div>
             </div>

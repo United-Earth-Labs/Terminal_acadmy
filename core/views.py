@@ -395,7 +395,7 @@ def courses_view(request):
         for progress in UserProgress.objects.filter(user=request.user, course__in=courses)
     }
     for course in courses:
-        course.user_progress = progress_map.get(course.id)
+        course.progress_info = progress_map.get(course.id)
         course.next_lesson = _get_next_lesson_for_user(request.user, course)
     return render(request, 'courses.html', {'courses': courses})
 
@@ -460,14 +460,14 @@ def course_detail_view(request, slug):
     current_lesson = None
     for index, lesson in enumerate(ordered_lessons, start=1):
         lesson.sequence_number = index
-        lesson.user_progress = lesson_progress_map.get(lesson.id)
+        lesson.progress_info = lesson_progress_map.get(lesson.id)
         lesson.lab = lesson.labs.order_by('id').first()
         lesson.quiz_object = _safe_get_quiz(lesson)
         lesson.lab_completed = lesson.id in completed_lab_lesson_ids
         lesson.quiz_completed = lesson.id in passed_quiz_lesson_ids
         lesson.is_completed = lesson.id in completed_ids
         lesson.is_available = unlocked or lesson.is_completed
-        lesson.status_label = 'Completed' if lesson.is_completed else ('Continue' if lesson.user_progress else 'Start')
+        lesson.status_label = 'Completed' if lesson.is_completed else ('Continue' if lesson.progress_info else 'Start')
         if current_lesson is None and not lesson.is_completed:
             current_lesson = lesson
         if not lesson.is_completed and unlocked:
@@ -697,7 +697,12 @@ def lab_detail_view(request, lab_id):
             if next_module:
                 next_lesson = next_module.lessons.order_by('order').first()
     
-    return render(request, 'lab_terminal.html', {
+    # If this is a React course, use the interactive frontend lab template
+    template_name = 'lab_terminal.html'
+    if course_slug == 'react-zero-to-hero':
+        template_name = 'lab_react.html'
+    
+    return render(request, template_name, {
         'lab': lab,
         'next_lesson': next_lesson,
         'course_slug': course_slug,
