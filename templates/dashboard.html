@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Terminal Acadmay{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.8fr);
+        gap: var(--space-xl);
+        align-items: start;
+    }
+
+    .dashboard-sidebar {
+        display: grid;
+        gap: var(--space-lg);
+        position: sticky;
+        top: 96px;
+    }
+
+    @media (max-width: 960px) {
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-sidebar {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-2xl) 0;">
+    <div class="container">
+        <div class="card" style="margin-bottom: var(--space-2xl); background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.08)); border-color: rgba(0, 255, 136, 0.16);">
+            <div style="display: flex; justify-content: space-between; align-items: end; gap: var(--space-lg); flex-wrap: wrap;">
+                <div>
+                    <h1 style="margin-bottom: var(--space-sm);">Welcome back, {{ user.display_name }}.</h1>
+                    <p style="margin-bottom: 0;">Your academy workspace now includes lesson pages, post-lesson quizzes, and completion summaries.</p>
+                </div>
+                <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap;">
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-green); font-size: 1.5rem;">{{ stats.xp }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Total XP</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 1.5rem;">{{ stats.level }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Current level</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.5rem;">{{ stats.streak }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Day streak</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: var(--space-2xl);">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.xp }}</div>
+                <div class="stat-label">XP earned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.courses_in_progress }}</div>
+                <div class="stat-label">Programs in progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.labs_completed }}</div>
+                <div class="stat-label">Labs completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.achievements_count }}</div>
+                <div class="stat-label">Achievements unlocked</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: var(--space-2xl);">
+            <div class="card-header">
+                <h3 style="margin-bottom: 0;">Level progress</h3>
+                <span style="color: var(--text-muted);">Next level: {{ stats.level|add:1 }}</span>
+            </div>
+            <div class="progress-bar" style="margin: var(--space-md) 0;">
+                <div class="progress-fill" style="width: {{ stats.xp_progress }}%;"></div>
+            </div>
+            <p style="font-size: 0.95rem; margin: 0;">{{ stats.xp }} / {{ stats.xp_for_next_level }} XP toward the next level threshold.</p>
+        </div>
+
+        <div class="dashboard-layout">
+            <div style="display: grid; gap: var(--space-xl);">
+                <div>
+                    <div class="card-header" style="margin-bottom: var(--space-lg);">
+                        <div>
+                            <h2 style="margin-bottom: 0;">Continue learning</h2>
+                            <p style="margin-top: var(--space-xs); margin-bottom: 0;">Resume from the next incomplete lesson in each active program.</p>
+                        </div>
+                    </div>
+
+                    {% if continue_learning %}
+                    <div style="display: grid; gap: var(--space-lg);">
+                        {% for progress in continue_learning %}
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <span class="badge badge-{{ progress.course.level }}">{{ progress.course.get_level_display }}</span>
+                                    <h3 style="margin-top: var(--space-sm); margin-bottom: 0;">{{ progress.course.title }}</h3>
+                                </div>
+                                <span style="color: var(--accent-green); font-family: var(--font-mono);">{{ progress.percentage }}%</span>
+                            </div>
+                            <div class="progress-bar" style="margin: var(--space-md) 0;">
+                                <div class="progress-fill" style="width: {{ progress.percentage }}%;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap; align-items: center;">
+                                <div>
+                                    {% if progress.next_lesson %}
+                                    <div style="color: var(--text-muted); font-size: 0.85rem;">Next lesson</div>
+                                    <strong>{{ progress.next_lesson.title }}</strong>
+                                    {% else %}
+                                    <strong>Course complete</strong>
+                                    {% endif %}
+                                </div>
+                                {% if progress.next_lesson %}
+                                <a href="{% url 'lesson_detail' progress.course.slug progress.next_lesson.slug %}" class="btn btn-primary">Resume</a>
+                                {% else %}
+                                <a href="{% url 'course_detail' progress.course.slug %}" class="btn btn-secondary">Review course</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="card">
+                        <p style="margin-bottom: var(--space-md);">You have not started a learning path yet.</p>
+                        <a href="{% url 'courses' %}" class="btn btn-primary">Browse the academy catalog</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <div class="card-header" style="margin-bottom: var(--space-lg);">
+                        <div>
+                            <h2 style="margin-bottom: 0;">Recommended next</h2>
+                            <p style="margin-top: var(--space-xs); margin-bottom: 0;">Suggested programs based on your current skill profile.</p>
+                        </div>
+                    </div>
+
+                    <div class="course-grid">
+                        {% for course in recommended_courses %}
+                        <a href="{% url 'course_detail' course.slug %}" class="course-card" style="text-decoration: none; color: inherit;">
+                            <div class="course-thumbnail">{{ course.title|slice:':1'|upper }}</div>
+                            <div class="course-content">
+                                <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                                <h4 style="margin-top: var(--space-sm); margin-bottom: var(--space-sm);">{{ course.title }}</h4>
+                                <p>{{ course.short_description|default:course.description|truncatewords:18 }}</p>
+                                <div class="course-meta">
+                                    <span>{{ course.lesson_count }} lessons</span>
+                                    <span>{{ course.lab_count }} labs</span>
+                                    <span>+{{ course.xp_reward }} XP</span>
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="card">
+                            <p style="margin-bottom: 0;">You are already engaged with the available programs at your level. Check the full catalog for more options.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <aside class="dashboard-sidebar">
+                <div class="card">
+                    <h3>Recent achievements</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        {% for entry in recent_achievements %}
+                        <div style="padding: var(--space-md); border: 1px solid var(--bg-tertiary); border-radius: var(--radius-md);">
+                            <strong>{{ entry.achievement.name }}</strong>
+                            <p style="margin: var(--space-xs) 0 0;">{{ entry.achievement.description }}</p>
+                        </div>
+                        {% empty %}
+                        <div style="padding: var(--space-md); border: 1px solid var(--bg-tertiary); border-radius: var(--radius-md);">
+                            Start a lesson to begin unlocking achievements.
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'achievements' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: var(--space-md);">View all achievements</a>
+                </div>
+
+                <div class="card">
+                    <h3>Quick actions</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <a href="{% url 'courses' %}" class="btn btn-primary" style="justify-content: center;">Open course catalog</a>
+                        <a href="{% url 'labs' %}" class="btn btn-secondary" style="justify-content: center;">Launch lab workspace</a>
+                        <a href="{% url 'leaderboard' %}" class="btn btn-secondary" style="justify-content: center;">View leaderboard</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Top learners</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        {% for entry in leaderboard_preview %}
+                        <div style="display: flex; justify-content: space-between; gap: var(--space-md); padding: var(--space-sm) 0; border-bottom: 1px solid var(--bg-tertiary);">
+                            <span>{{ forloop.counter }}. {{ entry.user.display_name }}</span>
+                            <strong>{{ entry.total_xp }} XP</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

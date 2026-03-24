@@ -1,0 +1,607 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Lab: {{ lab.title }} - Terminal Academy{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lab-container {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: var(--space-lg);
+        height: calc(100vh - 200px);
+        min-height: 500px;
+    }
+
+    .lab-terminal {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .terminal {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .terminal-body {
+        flex: 1;
+        height: auto;
+        min-height: 400px;
+    }
+
+    .lab-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+        overflow-y: auto;
+    }
+
+    .objective-item {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+        transition: background 0.3s;
+    }
+
+    .objective-item.completed {
+        background: rgba(0, 255, 136, 0.15);
+    }
+
+    .objective-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--text-muted);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s;
+    }
+
+    .objective-item.completed .objective-checkbox {
+        background: var(--accent-green);
+        border-color: var(--accent-green);
+    }
+
+    .objective-item.completed .objective-checkbox::after {
+        content: 'âœ“';
+        color: white;
+        font-size: 12px;
+    }
+
+    .hint-item {
+        padding: var(--space-md);
+        background: rgba(255, 204, 0, 0.1);
+        border-left: 3px solid var(--accent-yellow);
+        border-radius: var(--radius-sm);
+        margin-bottom: var(--space-sm);
+    }
+
+    .solution-panel {
+        background: rgba(255, 100, 100, 0.1);
+        border: 2px solid var(--accent-red);
+        border-radius: var(--radius-md);
+        padding: var(--space-lg);
+        margin-top: var(--space-md);
+    }
+
+    .solution-panel h4 {
+        color: var(--accent-red);
+        margin-bottom: var(--space-md);
+    }
+
+    .xp-warning {
+        color: var(--accent-yellow);
+        font-size: 0.85rem;
+        margin-top: var(--space-sm);
+    }
+
+    .success-message {
+        background: rgba(0, 255, 136, 0.2);
+        border: 2px solid var(--accent-green);
+        padding: var(--space-lg);
+        border-radius: var(--radius-md);
+        text-align: center;
+        margin-top: var(--space-md);
+    }
+
+    @media (max-width: 1024px) {
+        .lab-container {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+
+        .lab-sidebar {
+            order: -1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-lg) 0;">
+    <div class="container">
+        <!-- Lab Header -->
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
+            <div>
+                <a href="/labs/" style="color: var(--text-muted); font-size: 0.9rem;">â† Back to Labs</a>
+                <h1 style="margin-top: var(--space-sm); margin-bottom: 0;">{{ lab.title }}</h1>
+            </div>
+            <div style="display: flex; gap: var(--space-md); align-items: center;">
+                <span class="badge badge-{{ lab.difficulty }}">{{ lab.get_difficulty_display }}</span>
+                <span id="xp-display" style="color: var(--accent-green);">+{{ lab.xp_reward }} XP</span>
+            </div>
+        </div>
+
+        <div class="lab-container">
+            <!-- Terminal -->
+            <div class="lab-terminal">
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title" id="terminal-title">student@academy-lab:~$</span>
+                    </div>
+                    <div class="terminal-body" id="terminal-output">
+                        <div class="terminal-output" id="output-container">
+                            <span style="color: var(--accent-cyan);">ðŸŽ¯ Challenge Mode: Try to solve it first!</span>
+                            Type commands below. Use hints if you're stuck.
+                            Type 'help' for available commands.
+
+                        </div>
+                    </div>
+                    <div
+                        style="padding: var(--space-md); background: var(--bg-tertiary); border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+                        <div class="terminal-input-line">
+                            <span class="terminal-prompt" id="prompt">student@academy:~$</span>
+                            <input type="text" class="terminal-input" id="command-input"
+                                placeholder="Type command here..." autofocus autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lab-sidebar">
+                <!-- Challenge Description -->
+                <div class="card" style="border: 2px solid var(--accent-cyan);">
+                    <h3 style="margin-bottom: var(--space-md);">&#127919; Your Challenge</h3>
+                    <p style="margin-bottom: var(--space-md);">{{ lab.description }}</p>
+                    <div id="objectives-list">
+                        {% for objective in lab.objectives %}
+                        <div class="objective-item" data-index="{{ forloop.counter0 }}">
+                            <div class="objective-checkbox"></div>
+                            <span>{{ objective.description|default:objective }}</span>
+                        </div>
+                        {% empty %}
+                        <p style="color: var(--text-muted);">Complete the challenge to earn XP!</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Success message (hidden by default) -->
+                    <div id="success-message" class="success-message" style="display: none;">
+                        <h3>ðŸŽ‰ Congratulations!</h3>
+                        <p>You completed the lab!</p>
+                        <p id="xp-earned" style="font-size: 1.2em; color: var(--accent-green);"></p>
+                    </div>
+                </div>
+
+                <!-- Progressive Hints -->
+                <div class="card">
+                    <h3 style="margin-bottom: var(--space-md);">ðŸ’¡ Need Help?</h3>
+                    <div id="hints-container">
+                        <p style="color: var(--text-muted);">No hints revealed yet. Try solving it first!</p>
+                    </div>
+                    <button class="btn btn-secondary" id="hint-btn"
+                        style="width: 100%; justify-content: center; margin-top: var(--space-md);">
+                        ðŸ”“ Reveal Hint (<span id="hints-remaining">{{ lab.hints|length }}</span> left)
+                    </button>
+                </div>
+
+                <!-- Flag Submission (for CTF-style challenges) -->
+                {% if lab.flags %}
+                <div class="card" style="border: 2px solid var(--accent-purple, #9333ea);">
+                    <h3 style="margin-bottom: var(--space-md);">ðŸš© Submit Flag</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: var(--space-md);">
+                        Found the secret flag? Enter it below:
+                    </p>
+                    <div style="display: flex; gap: var(--space-sm);">
+                        <input type="text" id="flag-input" class="terminal-input" placeholder="FLAG{...}"
+                            style="flex: 1; padding: var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);">
+                        <button class="btn btn-primary" id="submit-flag-btn" style="white-space: nowrap;">
+                            Submit
+                        </button>
+                    </div>
+                    <div id="flag-result" style="margin-top: var(--space-md); display: none;"></div>
+                </div>
+                {% endif %}
+
+                <!-- Show Solution (Last Resort) -->
+                {% if lab.solution_guide %}
+                <div class="card" style="background: rgba(255, 100, 100, 0.05);">
+                    <h3 style="margin-bottom: var(--space-md);">ðŸ†˜ Completely Stuck?</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">
+                        If you've tried everything, you can view the step-by-step solution.
+                    </p>
+                    <button class="btn" id="solution-btn"
+                        style="width: 100%; justify-content: center; margin-top: var(--space-md); background: var(--accent-red); color: white;">
+                        ðŸ“š Show Solution
+                    </button>
+                    <p class="xp-warning">
+                        âš ï¸ Viewing solution reduces XP by {{ lab.xp_penalty_for_solution }}%
+                    </p>
+
+                    <div id="solution-panel" class="solution-panel" style="display: none;">
+                        <h4>ðŸ“š Step-by-Step Teaching</h4>
+                        <div id="solution-content">
+                            {{ lab.solution_guide|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Reset Button -->
+                <button class="btn btn-secondary" id="reset-btn" style="width: 100%; justify-content: center;">
+                    ðŸ”„ Reset Lab
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const labId = {{ lab.id }};
+    const totalHints = {{ lab.hints| length }};
+    const xpReward = {{ lab.xp_reward }};
+    const xpPenalty = {{ lab.xp_penalty_for_solution }};
+    const totalObjectives = {{ lab.objectives| length }};
+    const nextLessonUrl = {% if next_lesson %}'/courses/{{ course_slug }}/lessons/{{ next_lesson.slug }}/'{% else %} null{% endif %};
+    const courseUrl = {% if course_slug %}'/courses/{{ course_slug }}/'{% else %} '/labs/'{% endif %};
+
+    const commandInput = document.getElementById('command-input');
+    const outputContainer = document.getElementById('output-container');
+    const promptEl = document.getElementById('prompt');
+    const terminalBody = document.getElementById('terminal-output');
+    const hintsContainer = document.getElementById('hints-container');
+    const hintsRemaining = document.getElementById('hints-remaining');
+    const xpDisplay = document.getElementById('xp-display');
+
+    let commandHistory = [];
+    let historyIndex = -1;
+    let hintsRevealed = 0;
+    let solutionViewed = false;
+    let completedObjectives = new Set();
+    let labCompleted = false;
+
+    // Execute command
+    async function executeCommand(cmd) {
+        if (!cmd.trim()) return;
+        if (labCompleted) return;
+
+        commandHistory.push(cmd);
+        historyIndex = commandHistory.length;
+
+        appendOutput(`<span class="terminal-prompt">${promptEl.textContent}</span> <span class="terminal-command">${escapeHtml(cmd)}</span>`);
+
+        try {
+            const response = await fetch(`/api/v1/labs/${labId}/execute/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ command: cmd })
+            });
+
+            const data = await response.json();
+
+            if (data.output) {
+                if (data.is_error) {
+                    appendOutput(`<span class="terminal-error">${escapeHtml(data.output)}</span>`);
+                } else {
+                    appendOutput(escapeHtml(data.output));
+                }
+            }
+
+            if (data.prompt) {
+                promptEl.textContent = data.prompt;
+            }
+
+            // Update objectives - auto-check based on what was returned
+            if (data.objectives_completed && data.objectives_completed.length > 0) {
+                data.objectives_completed.forEach(idx => {
+                    if (!completedObjectives.has(idx)) {
+                        completedObjectives.add(idx);
+                        const obj = document.querySelector(`.objective-item[data-index="${idx}"]`);
+                        if (obj) {
+                            obj.classList.add('completed');
+                            appendOutput(`<span style="color: var(--accent-green);">âœ… Objective completed!</span>`);
+                        }
+                    }
+                });
+
+                // Check lab completion
+                checkLabCompletion();
+            }
+
+        } catch (err) {
+            appendOutput(`<span class="terminal-error">Error: ${err.message}</span>`);
+        }
+    }
+
+    function checkLabCompletion() {
+        if (completedObjectives.size >= totalObjectives && totalObjectives > 0) {
+            labCompleted = true;
+
+            let finalXP = xpReward;
+            if (solutionViewed) {
+                finalXP = Math.floor(xpReward * (100 - xpPenalty) / 100);
+            }
+
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('xp-earned').textContent = `+${finalXP} XP earned!`;
+
+            appendOutput(`\n<span style="color: var(--accent-green); font-size: 1.2em;">&#127881; LAB COMPLETE! +${finalXP} XP</span>\n`);
+
+            // Auto-navigate after 3 seconds
+            setTimeout(() => {
+                if (nextLessonUrl) {
+                    appendOutput(`\n<span style="color: var(--accent-cyan);">Redirecting to next lesson...</span>\n`);
+                    setTimeout(() => { window.location.href = nextLessonUrl; }, 1500);
+                } else {
+                    appendOutput(`\n<span style="color: var(--accent-cyan);">Returning to course page...</span>\n`);
+                    setTimeout(() => { window.location.href = courseUrl; }, 1500);
+                }
+            }, 2000);
+        }
+    }
+
+    function appendOutput(html) {
+        outputContainer.innerHTML += '\n' + html;
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getCsrfToken() {
+        // First check meta tag (recommended method)
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) return metaTag.getAttribute('content');
+
+        // Fall back to hidden input field
+        const inputField = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (inputField) return inputField.value;
+
+        // Finally check cookie
+        return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+    }
+
+    function updateXPDisplay() {
+        let finalXP = xpReward;
+        if (solutionViewed) {
+            finalXP = Math.floor(xpReward * (100 - xpPenalty) / 100);
+        }
+        xpDisplay.textContent = `+${finalXP} XP`;
+        if (solutionViewed) {
+            xpDisplay.style.color = 'var(--accent-yellow)';
+            xpDisplay.textContent += ' (reduced)';
+        }
+    }
+
+    // Input handling
+    commandInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            executeCommand(commandInput.value);
+            commandInput.value = '';
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                historyIndex--;
+                commandInput.value = commandHistory[historyIndex];
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                commandInput.value = commandHistory[historyIndex];
+            } else {
+                historyIndex = commandHistory.length;
+                commandInput.value = '';
+            }
+        }
+    });
+
+    // Progressive Hints
+    document.getElementById('hint-btn').addEventListener('click', async () => {
+        if (hintsRevealed >= totalHints) {
+            alert('No more hints available!');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/labs/${labId}/hint/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                credentials: 'same-origin'
+            });
+
+            const data = await response.json();
+
+            if (data.hint_text) {
+                hintsRevealed = data.hint_number;
+
+                // Add hint to container
+                if (hintsRevealed === 1) {
+                    hintsContainer.innerHTML = '';
+                }
+
+                const hintEl = document.createElement('div');
+                hintEl.className = 'hint-item';
+                hintEl.innerHTML = `<strong>ðŸ’¡ Hint ${data.hint_number}:</strong><br>${escapeHtml(data.hint_text)}`;
+                hintsContainer.appendChild(hintEl);
+
+                hintsRemaining.textContent = data.hints_remaining;
+
+                if (data.hints_remaining === 0) {
+                    document.getElementById('hint-btn').disabled = true;
+                    document.getElementById('hint-btn').textContent = 'No more hints';
+                }
+            } else if (data.error) {
+                alert(data.error);
+            }
+        } catch (err) {
+            alert('Failed to get hint: ' + err.message);
+        }
+    });
+
+    // Show Solution (with warning)
+    const solutionBtn = document.getElementById('solution-btn');
+    if (solutionBtn) {
+        solutionBtn.addEventListener('click', () => {
+            if (solutionViewed) {
+                document.getElementById('solution-panel').style.display = 'block';
+                return;
+            }
+
+            const confirmed = confirm(
+                `âš ï¸ Are you sure you want to view the solution?\n\n` +
+                `This will reduce your XP reward by ${xpPenalty}%.\n` +
+                `(${xpReward} XP â†’ ${Math.floor(xpReward * (100 - xpPenalty) / 100)} XP)\n\n` +
+                `Try using the hints first if you haven't already!`
+            );
+
+            if (confirmed) {
+                solutionViewed = true;
+                document.getElementById('solution-panel').style.display = 'block';
+                solutionBtn.textContent = 'ðŸ“š Solution (Viewed)';
+                updateXPDisplay();
+
+                // Notify server
+                fetch(`/api/v1/labs/${labId}/solution-viewed/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    credentials: 'same-origin'
+                });
+            }
+        });
+    }
+
+    // Reset lab
+    document.getElementById('reset-btn').addEventListener('click', async () => {
+        if (!confirm('Reset lab? Your terminal will be cleared.')) return;
+
+        try {
+            await fetch(`/api/v1/labs/${labId}/reset/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                credentials: 'same-origin'
+            });
+
+            location.reload();
+        } catch (err) {
+            alert('Failed to reset lab');
+        }
+    });
+
+    // Start lab on load
+    fetch(`/api/v1/labs/${labId}/start/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+        },
+        credentials: 'same-origin'
+    }).then(res => res.json()).then(data => {
+        if (data.prompt) {
+            promptEl.textContent = data.prompt;
+        }
+    });
+
+    // Submit Flag Handler
+    const submitFlagBtn = document.getElementById('submit-flag-btn');
+    const flagInput = document.getElementById('flag-input');
+    const flagResult = document.getElementById('flag-result');
+
+    if (submitFlagBtn && flagInput) {
+        submitFlagBtn.addEventListener('click', async () => {
+            const flag = flagInput.value.trim();
+            if (!flag) {
+                alert('Please enter a flag to submit.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/v1/labs/${labId}/submit/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ flag: flag })
+                });
+
+                const data = await response.json();
+
+                flagResult.style.display = 'block';
+
+                if (data.correct) {
+                    flagResult.innerHTML = `
+                        <div style="color: var(--accent-green); padding: var(--space-md); background: rgba(0,255,136,0.1); border-radius: var(--radius-sm);">
+                            ðŸŽ‰ <strong>Correct!</strong> ${data.message}
+                            ${data.xp_awarded ? `<br>+${data.xp_awarded} XP earned!` : ''}
+                        </div>
+                    `;
+                    submitFlagBtn.disabled = true;
+                    flagInput.disabled = true;
+
+                    // Show success message
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('xp-earned').textContent = `+${data.xp_awarded || xpReward} XP earned!`;
+                } else {
+                    flagResult.innerHTML = `
+                        <div style="color: var(--accent-red); padding: var(--space-md); background: rgba(255,100,100,0.1); border-radius: var(--radius-sm);">
+                            âŒ <strong>Incorrect.</strong> ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                flagResult.style.display = 'block';
+                flagResult.innerHTML = `
+                    <div style="color: var(--accent-red);">
+                        âš ï¸ Error submitting flag: ${err.message}
+                    </div>
+                `;
+            }
+        });
+
+        // Also allow submitting with Enter key
+        flagInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                submitFlagBtn.click();
+            }
+        });
+    }
+</script>
+{% endblock %}

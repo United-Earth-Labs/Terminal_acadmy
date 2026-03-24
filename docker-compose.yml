@@ -1,0 +1,139 @@
+# Terminal Academy - Docker Compose Configuration
+# Production deployment with all services
+
+version: '3.8'
+
+services:
+  # Django Web Application
+  web:
+    build:
+      context: .
+      target: production
+    container_name: terminal_academy_web
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@db:5432/terminal_academy
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - terminal_academy_network
+    expose:
+      - "8000"
+
+  # Celery Worker
+  celery:
+    build:
+      context: .
+      target: production
+    container_name: terminal_academy_celery
+    restart: unless-stopped
+    command: celery -A core worker -l info --concurrency=4
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@db:5432/terminal_academy
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - terminal_academy_network
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build:
+      context: .
+      target: production
+    container_name: terminal_academy_celery_beat
+    restart: unless-stopped
+    command: celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@db:5432/terminal_academy
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - terminal_academy_network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: terminal_academy_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=terminal_academy
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d terminal_academy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - terminal_academy_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: terminal_academy_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - terminal_academy_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: terminal_academy_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - web
+    networks:
+      - terminal_academy_network
+
+networks:
+  terminal_academy_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+  logs_volume:

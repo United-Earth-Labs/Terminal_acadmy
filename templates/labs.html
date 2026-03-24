@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Labs - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0;">
+    <div class="container">
+        <h1>🔬 Labs</h1>
+        <p style="color: var(--text-muted); margin-bottom: var(--space-xl);">
+            Practice your skills in our simulated terminal environments
+        </p>
+
+        <div class="alert alert-warning" style="margin-bottom: var(--space-xl);">
+            <strong>🔒 Safe Environment:</strong> All labs are 100% simulated. No real systems are accessed.
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
+            {% for lab in labs %}
+            <div class="card" {% if lab.id in completed_lab_ids %}style="border: 2px solid var(--accent-green);"
+                {%endif%}>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                        <span class="badge badge-{{ lab.difficulty }}">{{ lab.get_difficulty_display }}</span>
+                        {% if lab.id in completed_lab_ids %}
+                        <span class="badge" style="background: var(--accent-green); color: var(--bg-primary);">&#9989;
+                            Completed</span>
+                        {% endif %}
+                    </div>
+                    <span style="color: var(--accent-green);">+{{ lab.xp_reward }} XP</span>
+                </div>
+                <h3 style="margin-top: var(--space-md);">{{ lab.title }}</h3>
+                <p style="color: var(--text-muted);">{{ lab.description|truncatewords:20 }}</p>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <span>&#9201; {{ lab.time_limit }} min</span>
+                </div>
+                <a href="/labs/{{ lab.id }}/"
+                    class="btn {% if lab.id in completed_lab_ids %}btn-secondary{% else %}btn-primary{% endif %}"
+                    style="width: 100%; justify-content: center; margin-top: var(--space-md);">
+                    {% if lab.id in completed_lab_ids %}Review Lab{% else %}Start Lab{% endif %}
+                </a>
+            </div>
+            {% empty %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center;">
+                <p>No labs available yet. Check back soon!</p>
+                <p style="color: var(--text-muted);">Labs will be added by administrators.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+# Terminal Academy - Core Requirements
+# PythonAnywhere-compatible (no Redis/Celery)
+
+# Django
+Django>=5.0,<6.0
+djangorestframework>=3.14
+django-cors-headers>=4.3
+
+# Database
+dj-database-url>=2.1
+psycopg2-binary>=2.9  # PostgreSQL (optional - SQLite works too)
+
+# Security
+django-axes>=6.3  # Brute force protection
+django-ratelimit>=4.1  # Rate limiting (no Redis needed)
+
+# Static files
+whitenoise>=6.6
+
+# Environment
+python-decouple>=3.8
+python-dotenv>=1.0
+
+# Auth & Security
+pyotp>=2.9  # OTP/2FA support
+PyJWT>=2.8  # JWT tokens
+
+# Production server
+gunicorn>=21.2  # For local testing (PythonAnywhere has its own)

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Ethical Hacking Agreement - Terminal Academy{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-2xl) 0;">
+    <div class="container" style="max-width: 700px;">
+        <div class="card">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <h1 style="font-size: 1.75rem;">🔒 Ethical Hacking Agreement</h1>
+                <p style="margin: 0;">Please read and accept before accessing labs</p>
+            </div>
+
+            <div class="alert alert-warning" style="margin-bottom: var(--space-lg);">
+                <strong>Important:</strong> You must accept this agreement to access terminal labs.
+            </div>
+
+            <div
+                style="background: var(--bg-tertiary); padding: var(--space-lg); border-radius: var(--radius-md); margin-bottom: var(--space-xl); max-height: 400px; overflow-y: auto;">
+                <h3>Terms of Ethical Use</h3>
+
+                <p><strong>1. Educational Purpose Only</strong></p>
+                <p>All skills, techniques, and knowledge gained through Terminal Academy must be used exclusively for:
+                </p>
+                <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+                    <li>Educational and learning purposes</li>
+                    <li>Authorized security testing with proper permission</li>
+                    <li>Improving your own systems' security</li>
+                    <li>Legitimate cybersecurity career development</li>
+                </ul>
+
+                <p><strong>2. Prohibited Activities</strong></p>
+                <p>You agree to NEVER use techniques learned here to:</p>
+                <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+                    <li>Access systems without authorization</li>
+                    <li>Steal, modify, or destroy data</li>
+                    <li>Disrupt services or networks</li>
+                    <li>Harass, stalk, or harm individuals</li>
+                    <li>Commit any illegal activities</li>
+                </ul>
+
+                <p><strong>3. Simulated Environment</strong></p>
+                <p>All labs on Terminal Academy are 100% simulated. No real systems, networks, or data are involved.
+                    Commands you execute produce pre-configured responses for learning purposes only.</p>
+
+                <p><strong>4. Legal Responsibility</strong></p>
+                <p>You understand that unauthorized access to computer systems is illegal in most jurisdictions. You
+                    take full responsibility for any actions you take outside this platform.</p>
+
+                <p><strong>5. Reporting</strong></p>
+                <p>If you discover security vulnerabilities in real systems, you agree to report them responsibly
+                    through proper disclosure channels.</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div
+                    style="display: flex; align-items: flex-start; gap: var(--space-md); margin-bottom: var(--space-xl);">
+                    <input type="checkbox" id="agree_checkbox" required
+                        style="margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent-green);">
+                    <label for="agree_checkbox" style="cursor: pointer;">
+                        I have read, understood, and agree to the Ethical Hacking Agreement.
+                        I understand that violating these terms may result in account termination
+                        and potential legal action.
+                    </label>
+                </div>
+
+                <button type="submit" name="agree" value="yes" class="btn btn-primary"
+                    style="width: 100%; justify-content: center;">
+                    I Accept - Continue to Assessment
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

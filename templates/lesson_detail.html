@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} - Terminal Acadmay{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lesson-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+        gap: var(--space-xl);
+        align-items: start;
+    }
+
+    .lesson-hero {
+        background:
+            radial-gradient(circle at top right, rgba(0, 212, 255, 0.16), transparent 30%),
+            linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(10, 14, 20, 0.92));
+        border: 1px solid rgba(0, 255, 136, 0.14);
+    }
+
+    .lesson-content {
+        line-height: 1.8;
+        color: var(--text-secondary);
+    }
+
+    .lesson-content p:last-child {
+        margin-bottom: 0;
+    }
+
+    .takeaway-list,
+    .resource-list,
+    .lesson-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .takeaway-item,
+    .resource-item,
+    .lesson-nav-item {
+        padding: var(--space-md);
+        border: 1px solid var(--bg-tertiary);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .takeaway-list,
+    .resource-list {
+        display: grid;
+        gap: var(--space-sm);
+    }
+
+    .lesson-sidebar {
+        display: grid;
+        gap: var(--space-lg);
+        position: sticky;
+        top: 96px;
+    }
+
+    .path-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 999px;
+        font-size: 0.78rem;
+        background: rgba(0, 212, 255, 0.12);
+        color: var(--accent-cyan);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+        margin-top: var(--space-lg);
+    }
+
+    @media (max-width: 960px) {
+        .lesson-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .lesson-sidebar {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0 var(--space-2xl);">
+    <div class="container">
+        <a href="{% url 'course_detail' course.slug %}" style="color: var(--text-muted);">Back to {{ course.title }}</a>
+
+        <div class="card lesson-hero" style="margin-top: var(--space-lg);">
+            <div class="path-pill">Lesson {{ lesson.module.order }}.{{ lesson.order }}</div>
+            <div style="display: flex; justify-content: space-between; gap: var(--space-lg); margin-top: var(--space-md); flex-wrap: wrap; align-items: end;">
+                <div style="max-width: 760px;">
+                    <h1 style="margin-bottom: var(--space-sm);">{{ lesson.title }}</h1>
+                    <p style="font-size: 1.05rem; max-width: 65ch;">{{ lesson.module.title }} in {{ course.title }}. Read the lesson, practice the lab, and finish with the assessment flow.</p>
+                </div>
+                <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap;">
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-green); font-size: 1.4rem;">{{ lesson.estimated_duration }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Minutes</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 1.4rem;">+{{ lesson.xp_reward }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Lesson XP</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.4rem;">{{ course_progress.percentage }}%</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Course progress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lesson-shell" style="margin-top: var(--space-xl);">
+            <div style="display: grid; gap: var(--space-lg);">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 style="margin-bottom: 0;">Lesson walkthrough</h2>
+                            <p style="margin-top: var(--space-xs); margin-bottom: 0;">Structured theory before hands-on validation.</p>
+                        </div>
+                        <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                    </div>
+                    <div class="lesson-content">{{ lesson.content|linebreaks }}</div>
+                </div>
+
+                <div class="card">
+                    <h3>What you should retain</h3>
+                    <ul class="takeaway-list" style="margin-top: var(--space-md);">
+                        {% for takeaway in takeaways %}
+                        <li class="takeaway-item">{{ takeaway }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if lab %}
+                <div class="card" style="border-color: {% if lab_completed %}rgba(0, 255, 136, 0.25){% else %}rgba(0, 212, 255, 0.25){% endif %};">
+                    <div class="card-header">
+                        <div>
+                            <h3 style="margin-bottom: 0;">Practice lab</h3>
+                            <p style="margin-top: var(--space-xs); margin-bottom: 0;">{{ lab.title }}</p>
+                        </div>
+                        <span class="badge badge-{{ lab.difficulty }}">{{ lab.get_difficulty_display }}</span>
+                    </div>
+                    <p>{{ lab.description }}</p>
+                    <div class="cta-row">
+                        <a href="{% url 'lab_detail' lab.id %}" class="btn btn-primary">{% if lab_attempt %}Resume lab{% else %}Launch lab{% endif %}</a>
+                        {% if lab_attempt %}
+                        <span style="color: {% if lab_attempt.completed %}var(--accent-green){% else %}var(--text-muted){% endif %}; align-self: center;">
+                            {% if lab_attempt.completed %}Lab completed{% else %}Lab in progress{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if lesson.requires_lab_completion %}
+                    <p style="margin-top: var(--space-md); margin-bottom: 0; color: {% if lab_completed %}var(--accent-green){% else %}var(--accent-orange){% endif %};">
+                        {% if lab_completed %}This lesson requirement is satisfied. You can continue to the next step.{% else %}This lab must be completed before the lesson can be finished.{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="card">
+                    <h3>Assessment and wrap-up</h3>
+                    {% if quiz %}
+                    <p>Finish this lesson with a graded knowledge check and a guided summary.</p>
+                    <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin: var(--space-md) 0;">
+                        <div>
+                            <strong>{{ quiz.questions.count }}</strong>
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Questions</div>
+                        </div>
+                        <div>
+                            <strong>{{ quiz.passing_score }}%</strong>
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Passing score</div>
+                        </div>
+                        <div>
+                            <strong>{{ quiz.max_attempts }}</strong>
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Max attempts</div>
+                        </div>
+                    </div>
+                    <div class="cta-row">
+                        <a href="{% url 'lesson_quiz' course.slug lesson.slug %}" class="btn btn-primary" {% if lesson.requires_lab_completion and not lab_completed %}style="pointer-events: none; opacity: 0.55;"{% endif %}>Take lesson quiz</a>
+                        {% if latest_quiz_attempt %}
+                        <span style="align-self: center; color: {% if latest_quiz_attempt.passed %}var(--accent-green){% else %}var(--accent-orange){% endif %};">
+                            Latest score: {{ latest_quiz_attempt.score|floatformat:0 }}%
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <p>This lesson currently ends with a summary page instead of a graded quiz. You can still mark it complete and continue the learning path.</p>
+                    <form method="post" style="margin-top: var(--space-md);">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="complete_lesson">
+                        <button type="submit" class="btn btn-primary" {% if lesson.requires_lab_completion and not lab_completed %}disabled{% endif %}>Complete lesson</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                {% if lesson.resources.exists %}
+                <div class="card">
+                    <h3>Resources</h3>
+                    <ul class="resource-list" style="margin-top: var(--space-md);">
+                        {% for resource in lesson.resources.all %}
+                        <li class="resource-item">
+                            <div style="display: flex; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap;">
+                                <div>
+                                    <strong>{{ resource.title }}</strong>
+                                    {% if resource.description %}
+                                    <p style="margin: var(--space-xs) 0 0;">{{ resource.description }}</p>
+                                    {% endif %}
+                                </div>
+                                {% if resource.url %}
+                                <a href="{{ resource.url }}" target="_blank" rel="noopener">Open resource</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <aside class="lesson-sidebar">
+                <div class="card">
+                    <h3>Progress state</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <div class="lesson-nav-item">Lesson started: {% if lesson_progress.started %}<span style="color: var(--accent-green);">Yes</span>{% else %}No{% endif %}</div>
+                        <div class="lesson-nav-item">Lesson completed: {% if lesson_progress.completed %}<span style="color: var(--accent-green);">Yes</span>{% else %}No{% endif %}</div>
+                        <div class="lesson-nav-item">Quiz attempts: {{ quiz_attempts_count }}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Where to go next</h3>
+                    <ul class="lesson-nav-list" style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        {% if previous_lesson %}
+                        <li class="lesson-nav-item">
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Previous lesson</div>
+                            <a href="{% url 'lesson_detail' course.slug previous_lesson.slug %}">{{ previous_lesson.title }}</a>
+                        </li>
+                        {% endif %}
+                        {% if next_lesson %}
+                        <li class="lesson-nav-item">
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Next lesson</div>
+                            <a href="{% url 'lesson_detail' course.slug next_lesson.slug %}">{{ next_lesson.title }}</a>
+                        </li>
+                        {% endif %}
+                        <li class="lesson-nav-item">
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Full track</div>
+                            <a href="{% url 'course_detail' course.slug %}">Return to course roadmap</a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

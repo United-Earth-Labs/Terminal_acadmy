@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} Summary - Terminal Acadmay{% endblock %}
+
+{% block extra_css %}
+<style>
+    .summary-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+        gap: var(--space-xl);
+        align-items: start;
+    }
+
+    .summary-sidebar {
+        display: grid;
+        gap: var(--space-lg);
+        position: sticky;
+        top: 96px;
+    }
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: var(--space-md);
+    }
+
+    .metric-card {
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--bg-tertiary);
+    }
+
+    @media (max-width: 960px) {
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-sidebar {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: var(--space-xl) 0 var(--space-2xl);">
+    <div class="container">
+        <div class="card" style="background: linear-gradient(135deg, rgba(0, 255, 136, 0.12), rgba(10, 14, 20, 0.94)); border-color: rgba(0, 255, 136, 0.28);">
+            <span class="badge badge-beginner" style="background: rgba(0, 255, 136, 0.14); color: var(--accent-green);">Lesson complete</span>
+            <h1 style="margin-top: var(--space-md); margin-bottom: var(--space-sm);">{{ lesson.title }} summary</h1>
+            <p style="max-width: 60ch; margin-bottom: 0;">Close the loop on the lesson, review your result, and move directly into the next objective in {{ course.title }}.</p>
+        </div>
+
+        <div class="summary-grid" style="margin-top: var(--space-xl);">
+            <div style="display: grid; gap: var(--space-lg);">
+                <div class="card">
+                    <h2>Performance snapshot</h2>
+                    <div class="metric-grid" style="margin-top: var(--space-md);">
+                        <div class="metric-card">
+                            <div style="font-family: var(--font-mono); color: var(--accent-green); font-size: 1.5rem;">+{{ summary_flash.lesson_xp|default:0 }}</div>
+                            <div style="color: var(--text-muted);">Lesson XP earned</div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 1.5rem;">+{{ summary_flash.quiz_xp|default:0 }}</div>
+                            <div style="color: var(--text-muted);">Quiz XP earned</div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.5rem;">{{ course_progress.percentage }}%</div>
+                            <div style="color: var(--text-muted);">Course completion</div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="font-family: var(--font-mono); color: var(--text-primary); font-size: 1.5rem;">{% if latest_quiz_attempt %}{{ latest_quiz_attempt.score|floatformat:0 }}%{% else %}Ready{% endif %}</div>
+                            <div style="color: var(--text-muted);">Assessment result</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Key takeaways</h2>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        {% for takeaway in takeaways %}
+                        <div class="lesson-nav-item">{{ takeaway }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if latest_quiz_attempt %}
+                <div class="card">
+                    <h2>Assessment review</h2>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <div class="lesson-nav-item">Attempts used: {{ quiz_attempts_count }}</div>
+                        <div class="lesson-nav-item">Points earned: {{ latest_quiz_attempt.points_earned }}/{{ latest_quiz_attempt.total_points }}</div>
+                        <div class="lesson-nav-item">Time taken: {{ latest_quiz_attempt.time_taken|default:0 }} seconds</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lesson.resources.exists %}
+                <div class="card">
+                    <h2>Continue studying</h2>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        {% for resource in lesson.resources.all %}
+                        <div class="lesson-nav-item">
+                            <strong>{{ resource.title }}</strong>
+                            {% if resource.description %}
+                            <p style="margin: var(--space-xs) 0 0;">{{ resource.description }}</p>
+                            {% endif %}
+                            {% if resource.url %}
+                            <div style="margin-top: var(--space-sm);"><a href="{{ resource.url }}" target="_blank" rel="noopener">Open resource</a></div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <aside class="summary-sidebar">
+                <div class="card">
+                    <h3>Next action</h3>
+                    {% if next_lesson %}
+                    <p>Keep momentum and continue with the next lesson in the path.</p>
+                    <a href="{% url 'lesson_detail' course.slug next_lesson.slug %}" class="btn btn-primary">Start next lesson</a>
+                    {% elif is_course_complete %}
+                    <p>You have finished the learning path. Review the course overview or pick a new track from the catalog.</p>
+                    <a href="{% url 'course_detail' course.slug %}" class="btn btn-primary">View completed course</a>
+                    {% else %}
+                    <p>Return to the course roadmap and choose your next milestone.</p>
+                    <a href="{% url 'course_detail' course.slug %}" class="btn btn-primary">Open roadmap</a>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Completion details</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <div class="lesson-nav-item">Lab completed: {% if lab_completed %}<span style="color: var(--accent-green);">Yes</span>{% else %}Not required{% endif %}</div>
+                        <div class="lesson-nav-item">Lesson reward claimed: {% if lesson_progress.xp_awarded %}<span style="color: var(--accent-green);">Yes</span>{% else %}No{% endif %}</div>
+                        <div class="lesson-nav-item">Quiz reward claimed: {% if latest_quiz_attempt and latest_quiz_attempt.xp_awarded %}<span style="color: var(--accent-green);">Yes</span>{% else %}No{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Navigation</h3>
+                    <div style="display: grid; gap: var(--space-sm); margin-top: var(--space-md);">
+                        <a class="lesson-nav-item" href="{% url 'lesson_detail' course.slug lesson.slug %}">Revisit lesson</a>
+                        <a class="lesson-nav-item" href="{% url 'course_detail' course.slug %}">Return to course overview</a>
+                        <a class="lesson-nav-item" href="{% url 'courses' %}">Browse all programs</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}
