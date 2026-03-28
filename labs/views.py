@@ -322,8 +322,7 @@ def reset_lab(request, lab_id):
     
     # Clear simulator
     key = f"{request.user.id}_{lab_id}"
-    if key in _simulators:
-        del _simulators[key]
+    _simulators.pop(key, None)
     
     # Reset attempt (keep hints_revealed and solution_viewed to prevent abuse)
     attempt.completed = False
