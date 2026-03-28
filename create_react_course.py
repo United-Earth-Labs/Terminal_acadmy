@@ -681,7 +681,6 @@ l4_lab, _ = Lab.objects.get_or_create(
 )
 print('  ✓ Lesson 4 + lab')
 
-
 # ═══════════════════════════════════════════════════════════════════════
 #  MODULE 2: Interactivity & State
 # ═══════════════════════════════════════════════════════════════════════
@@ -2290,4 +2289,5 @@ print('   Course: React from Zero to Hero')
 print('   Module 1: React Foundations (4 lessons)')
 print('   Module 2: Interactivity & State (4 lessons)')
 print('   Module 3: Data Flow & Effects (4 lessons)')
+
 print('   Visit: /courses/react-zero-to-hero/')
