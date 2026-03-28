@@ -235,7 +235,7 @@ def check_objectives(attempt: LabAttempt, parsed, result) -> list:
 def get_hint(request, lab_id):
     """Get the next hint for the lab."""
     lab = get_object_or_404(Lab, id=lab_id, is_active=True)
-    attempt = get_object_or_404(LabAttempt, user=request.user, lab=lab)
+    attempt, _ = LabAttempt.objects.get_or_create(user=request.user, lab=lab)
     
     hints = lab.hints or []
     
