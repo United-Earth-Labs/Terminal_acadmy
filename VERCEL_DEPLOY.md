@@ -143,7 +143,7 @@ python manage.py migrate --run-syncdb
 | File | Purpose |
 |------|---------|
 | `vercel.json` | Vercel deployment configuration |
-| `vercel_wsgi.py` | WSGI entry point for serverless |
+| `api/index.py` | WSGI entry point for serverless |
 | `core/settings/vercel.py` | Vercel-specific Django settings |
 | `build.sh` | Build script for Vercel |
 
