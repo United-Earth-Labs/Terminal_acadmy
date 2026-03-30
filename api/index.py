@@ -5,8 +5,8 @@ This handles the serverless environment properly.
 import os
 import sys
 
-# Add the project to path
-sys.path.insert(0, os.path.dirname(__file__))
+# Add the parent project directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Set environment variables for Vercel
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings.vercel')
