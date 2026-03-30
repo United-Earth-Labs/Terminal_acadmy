@@ -1,0 +1,17 @@
+[
+  {
+    "type": "frontend_code",
+    "contains": "{",
+    "description": "Use curly braces for JavaScript expressions"
+  },
+  {
+    "type": "frontend_code",
+    "contains": "?",
+    "description": "Use a ternary operator"
+  },
+  {
+    "type": "frontend_render",
+    "contains": "Online",
+    "description": "Render the correct online status"
+  }
+]

@@ -419,7 +419,10 @@ root.render(<App />);`;
                 ${userCode}
                 
                 // Signal back to parent window that render is done for validation
-                window.parent.postMessage({ type: 'RENDER_COMPLETE', html: document.getElementById('root').innerHTML }, '*');
+                // React 18 render() is async, so we must wait for the DOM to update
+                setTimeout(() => {
+                    window.parent.postMessage({ type: 'RENDER_COMPLETE', html: document.getElementById('root').innerHTML }, '*');
+                }, 100);
             } catch (err) {
                 window.parent.postMessage({ type: 'REACT_ERROR', message: err.toString() }, '*');
             }

@@ -5,10 +5,10 @@ from .base import *
 
 # Security
 DEBUG = False
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-build-key-only')  # Required in production
+SECRET_KEY = config('SECRET_KEY')  # Required in production
 
 # Hosts
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 # HTTPS settings (PythonAnywhere provides HTTPS)
 SECURE_SSL_REDIRECT = True
