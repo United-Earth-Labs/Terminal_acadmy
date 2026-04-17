@@ -21,7 +21,26 @@
     .lesson-content {
         line-height: 1.8;
         color: var(--text-secondary);
+        font-size: 1.05rem;
     }
+
+    .lesson-content h1, .lesson-content h2, .lesson-content h3 {
+        color: var(--text-primary);
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-weight: 600;
+    }
+    
+    .lesson-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--bg-tertiary); padding-bottom: 0.3em; }
+    .lesson-content h3 { font-size: 1.25rem; }
+    .lesson-content p { margin-bottom: 1.2em; }
+    .lesson-content ul, .lesson-content ol { margin-bottom: 1.2em; padding-left: 1.5em; }
+    .lesson-content li { margin-bottom: 0.4em; }
+    .lesson-content strong { color: var(--text-primary); }
+    .lesson-content code { background: rgba(0,0,0,0.3); padding: 0.2em 0.4em; border-radius: 4px; font-family: var(--font-mono); font-size: 0.85em; color: var(--accent-cyan); }
+    .lesson-content pre { background: rgba(0,0,0,0.4); padding: 1em; border-radius: var(--radius-md); overflow-x: auto; margin-bottom: 1.2em; border: 1px solid var(--border-color); }
+    .lesson-content pre code { background: transparent; padding: 0; color: #e0e0e0; font-size: 0.9em; }
+    .lesson-content blockquote { border-left: 4px solid var(--text-muted); margin: 0 0 1.2em 0; padding: 0.5em 1em; background: rgba(255, 255, 255, 0.02); border-radius: 0 4px 4px 0; color: var(--text-muted); }
 
     .lesson-content p:last-child {
         margin-bottom: 0;
@@ -128,7 +147,12 @@
                         </div>
                         <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
                     </div>
-                    <div class="lesson-content">{{ lesson.content|linebreaks }}</div>
+                    <div class="lesson-content">
+                        <!-- Rendered markdown goes here -->
+                        <div id="rendered-markdown-content"></div>
+                        <!-- Hidden raw content -->
+                        <script type="text/markdown" id="raw-markdown-content">{{ lesson.content|safe }}</script>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -261,4 +285,30 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Parse the markdown content
+        const rawContent = document.getElementById('raw-markdown-content').innerHTML;
+        const renderedDiv = document.getElementById('rendered-markdown-content');
+        
+        // Use marked.js to convert text -> HTML
+        if (typeof marked !== 'undefined') {
+            // Un-escape HTML entities that Django template might have escaped
+            const unescaped = rawContent
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'");
+                
+            renderedDiv.innerHTML = marked.parse(unescaped);
+        } else {
+            renderedDiv.innerHTML = "Error loading markdown parser.";
+        }
+    });
+</script>
 {% endblock %}

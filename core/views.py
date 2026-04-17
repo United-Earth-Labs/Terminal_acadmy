@@ -402,15 +402,39 @@ def courses_view(request):
 
 @login_required
 def labs_view(request):
-    """Browse available labs."""
-    from labs.models import Lab, LabAttempt
-    labs = Lab.objects.filter(is_active=True).order_by('difficulty', 'title')
-    completed_lab_ids = LabAttempt.objects.filter(
+    """Browse available labs grouped by course."""
+    labs = Lab.objects.filter(is_active=True).select_related('lesson__module__course')
+    completed_lab_ids = set(LabAttempt.objects.filter(
         user=request.user, completed=True
-    ).values_list('lab_id', flat=True)
+    ).values_list('lab_id', flat=True))
+    
+    # Get all published courses that have labs
+    course_set = set(lab.lesson.module.course for lab in labs if lab.lesson and lab.lesson.module and lab.lesson.module.course)
+    
+    # Precompute unlock status
+    unlocked_courses = set()
+    for course in course_set:
+        first_lesson = Lesson.objects.filter(module__course=course).order_by('module__order', 'order').first()
+        if first_lesson:
+            is_completed = LessonProgress.objects.filter(user=request.user, lesson=first_lesson, completed=True).exists()
+            if is_completed:
+                unlocked_courses.add(course.id)
+                
+    grouped_labs = []
+    sorted_courses = sorted(list(course_set), key=lambda c: (c.level, c.title))
+    
+    for course in sorted_courses:
+        course_labs = [lab for lab in labs if lab.lesson and lab.lesson.module and lab.lesson.module.course_id == course.id]
+        course_labs = sorted(course_labs, key=lambda l: l.title)
+        grouped_labs.append({
+            'course': course,
+            'unlocked': course.id in unlocked_courses,
+            'labs': course_labs
+        })
+        
     return render(request, 'labs.html', {
-        'labs': labs,
-        'completed_lab_ids': list(completed_lab_ids),
+        'grouped_labs': grouped_labs,
+        'completed_lab_ids': completed_lab_ids,
     })
 
 
@@ -675,6 +699,16 @@ def lesson_summary_view(request, slug, lesson_slug):
 def lab_detail_view(request, lab_id):
     """View lab detail / terminal interface."""
     lab = get_object_or_404(Lab, id=lab_id, is_active=True)
+    
+    # Verify course unlock status
+    if lab.lesson and lab.lesson.module and lab.lesson.module.course:
+        course = lab.lesson.module.course
+        first_lesson = Lesson.objects.filter(module__course=course).order_by('module__order', 'order').first()
+        if first_lesson:
+            is_completed = LessonProgress.objects.filter(user=request.user, lesson=first_lesson, completed=True).exists()
+            if not is_completed:
+                messages.error(request, f"You must complete the first lesson of '{course.title}' to unlock its labs.")
+                return redirect('labs')
     
     # Find next lesson in the course for auto-navigation after completion
     next_lesson = None
