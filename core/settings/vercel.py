@@ -55,11 +55,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Use default file storage for serverless (can be replaced with S3/Cloudinary)
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-# Cache - Use database cache for serverless (no Redis)
+# Cache - Use dummy cache for serverless (avoids needing cache table in DB)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'django_cache_table',
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
 
