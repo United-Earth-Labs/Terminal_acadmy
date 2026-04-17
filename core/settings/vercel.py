@@ -12,9 +12,10 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-vercel-key-change-in-
 # Hosts - Vercel provides dynamic URLs
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='*.vercel.app,localhost,127.0.0.1',
+    default='.vercel.app,localhost,127.0.0.1',
     cast=Csv()
 )
+ALLOWED_HOSTS.append('*')  # Allow all for serverless (Vercel handles security at edge)
 
 # Add current host dynamically (for preview deployments)
 import socket
