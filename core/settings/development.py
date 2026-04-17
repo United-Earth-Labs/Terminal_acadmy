@@ -27,11 +27,15 @@ CACHES = {
 # Email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Debug toolbar
-INSTALLED_APPS += ['debug_toolbar', 'django_extensions']
-MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
-
-INTERNAL_IPS = ['127.0.0.1']
+# Debug toolbar (optional - only if installed)
+try:
+    import debug_toolbar
+    import django_extensions
+    INSTALLED_APPS += ['debug_toolbar', 'django_extensions']
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INTERNAL_IPS = ['127.0.0.1']
+except ImportError:
+    pass  # debug_toolbar not installed, skip it
 
 # Disable security in development
 SESSION_COOKIE_SECURE = False
