@@ -22,8 +22,11 @@
 
                 <div class="form-group">
                     <label class="form-label" for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••"
-                        required autocomplete="current-password">
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" style="padding-right: 60px;"
+                            required autocomplete="current-password">
+                        <button type="button" class="btn-show-pass" data-target="password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--accent-cyan); cursor: pointer; font-size: 0.9rem; padding: 0;">Show</button>
+                    </div>
                 </div>
 
                 <div style="text-align: right; margin-bottom: var(--space-md);">
@@ -53,4 +56,20 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.querySelectorAll('.btn-show-pass').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const inputField = document.getElementById(targetId);
+            if (inputField.type === 'password') {
+                inputField.type = 'text';
+                this.textContent = 'Hide';
+            } else {
+                inputField.type = 'password';
+                this.textContent = 'Show';
+            }
+        });
+    });
+</script>
 {% endblock %}
