@@ -1,5 +1,16 @@
 {
     "version": 2,
+    "buildCommand": "bash build.sh",
+    "build": {
+        "env": {
+            "DJANGO_SETTINGS_MODULE": "core.settings.vercel",
+            "DEBUG": "False"
+        }
+    },
+    "env": {
+        "DJANGO_SETTINGS_MODULE": "core.settings.vercel",
+        "DEBUG": "False"
+    },
     "routes": [
         {
             "src": "/static/(.*)",
